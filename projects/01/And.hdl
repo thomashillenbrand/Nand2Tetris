@@ -2,6 +2,7 @@
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
 // File name: projects/01/And.hdl
+// Updated by Tom Hillenbrand 1/21/2018
 
 /**
  * And gate: 
@@ -14,5 +15,5 @@ CHIP And {
     OUT out;
 
     PARTS:
-    // Put your code here:
+    
 }
