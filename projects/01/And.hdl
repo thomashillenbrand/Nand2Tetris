@@ -15,7 +15,13 @@ CHIP And {
     OUT out;
 
     PARTS:
+	// First NAND gate to determine (a&b).
+	// if false, then this implies that a&b == true
     Nand (a=a, b=b, out=nandAB);
+	
+	// Since NAND is the opposite of AND, we
+	// NOT the result of the NAND gate to get
+	// proper result of the AND gate.
     Not (in=nandAB, out=out);
     
 }
