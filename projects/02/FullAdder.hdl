@@ -2,9 +2,21 @@
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
 // File name: projects/02/FullAdder.hdl
+// Updated by Tom Hillenbrand 1/23/2018
 
 /**
  * Computes the sum of three bits.
+ *
+ * |   a   |   b   |   c   |  sum  | carry |
+ * |   0   |   0   |   0   |   0   |   0   |
+ * |   0   |   0   |   1   |   1   |   0   |
+ * |   0   |   1   |   0   |   1   |   0   |
+ * |   0   |   1   |   1   |   0   |   1   |
+ * |   1   |   0   |   0   |   1   |   0   |
+ * |   1   |   0   |   1   |   0   |   1   |
+ * |   1   |   1   |   0   |   0   |   1   |
+ * |   1   |   1   |   1   |   1   |   1   |
+ *
  */
 
 CHIP FullAdder {
@@ -14,4 +26,13 @@ CHIP FullAdder {
 
     PARTS:
     // Put you code here:
+	//add a and b together, results in abSum and abCarry values
+	//add the abSum to c. The result is the total sum.
+	//Or the two carry results together to determine if there's an overall carry	
+	
+	HalfAdder (a=a, b=b, sum=abSum, carry=abCarry);
+	HalfAdder (a=abSum, b=c, sum=sum, carry=abcCarry);
+	Or (a=abCarry, b=abcCarry, out=carry);	
+	
 }
+
