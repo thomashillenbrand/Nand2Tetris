@@ -8,6 +8,13 @@
  * And gate: 
  * out = 1 if (a == 1 and b == 1)
  *       0 otherwise
+ *
+ * |   a   |   b   |  out  |
+ * |   0   |   0   |   0   |
+ * |   0   |   1   |   0   |
+ * |   1   |   0   |   0   |
+ * |   1   |   1   |   1   |
+ *
  */
 
 CHIP And {

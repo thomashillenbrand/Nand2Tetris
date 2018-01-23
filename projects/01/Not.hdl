@@ -7,6 +7,11 @@
 /**
  * Not gate:
  * out = not in
+ * 
+ * |  in   |  out  |
+ * |   0   |   1   |
+ * |   1   |   0   |
+ *
  */
 
 CHIP Not {

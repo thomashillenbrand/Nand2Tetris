@@ -2,10 +2,18 @@
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
 // File name: projects/01/Xor.hdl
+// Updated by Tom Hillenbrand 1/21/2018
 
 /**
  * Exclusive-or gate:
  * out = not (a == b)
+ *
+ * |   a   |   b   |  out  |
+ * |   0   |   0   |   0   |
+ * |   0   |   1   |   1   |
+ * |   1   |   0   |   1   |
+ * |   1   |   1   |   0   |
+ *
  */
 
 CHIP Xor {
