@@ -2,9 +2,21 @@
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
 // File name: projects/02/HalfAdder.hdl
+// Updated by Tom Hillenbrand 1/23/2018
 
 /**
  * Computes the sum of two bits.
+ * 
+ * Truth Table:
+ * _________________________________
+ * |   a   |   b   |  sum  | carry |
+ * ---------------------------------
+ * |   0   |   0   |   0   |   0   |
+ * |   0   |   1   |   1   |   0   |
+ * |   1   |   0   |   1   |   0   |
+ * |   1   |   1   |   0   |   1   |
+ *
+ *
  */
 
 CHIP HalfAdder {
@@ -13,5 +25,10 @@ CHIP HalfAdder {
         carry;  // Left bit of a + b
 
     PARTS:
-    // Put you code here:
+	//Sum is just an Xor gate
+    Xor (a=a, b=b, out=sum);
+	
+	//Carry is just an And gate
+	And (a=a, b=b, out=carry);
+	
 }
