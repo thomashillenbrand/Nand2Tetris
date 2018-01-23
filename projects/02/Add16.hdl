@@ -31,8 +31,8 @@ CHIP Add16 {
    
    HalfAdder (a=a[0], b=b[0], sum=out[0], carry=carry0);
    FullAdder (a=a[1], b=b[1], c=carry0, sum=out[1], carry=carry1);
-   FullAdder (a=a[2], b=b[2], c=carry2, sum=out[2], carry=carry2);
-   FullAdder (a=a[3], b=b[3], c=carry3, sum=out[3], carry=carry3);
+   FullAdder (a=a[2], b=b[2], c=carry1, sum=out[2], carry=carry2);
+   FullAdder (a=a[3], b=b[3], c=carry2, sum=out[3], carry=carry3);
    FullAdder (a=a[4], b=b[4], c=carry3, sum=out[4], carry=carry4);
    FullAdder (a=a[5], b=b[5], c=carry4, sum=out[5], carry=carry5);
    FullAdder (a=a[6], b=b[6], c=carry5, sum=out[6], carry=carry6);
