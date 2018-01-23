@@ -2,6 +2,7 @@
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
 // File name: projects/02/Adder16.hdl
+// Updated by Tom Hillenbrand 1/23/2018
 
 /**
  * Adds two 16-bit values.
@@ -44,4 +45,5 @@ CHIP Add16 {
    FullAdder (a=a[13], b=b[13], c=carry13, sum=out[13], carry=carry14);
    FullAdder (a=a[14], b=b[14], c=carry14, sum=out[14], carry=carry15);
    FullAdder (a=a[15], b=b[15], c=carry15, sum=out[15], carry=carry16);
+   
 }
