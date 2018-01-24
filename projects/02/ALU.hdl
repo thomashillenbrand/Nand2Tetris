@@ -72,11 +72,16 @@ CHIP ALU {
 	
    //==========================================================//
 	
-   //no settings
+   //no settings, will also take care of ng output since if first bit is 1, ng==1
    Not16 (in=preout, out=notout);
-   Mux16 (a=preout, b=notout, sel=no, out=out);
+   Mux16 (a=preout, b=notout, sel=no, out=out, out=nzout, out[15]=ng);
    
    //=========================================================//
+   
+   //nz
+   Nor16Way (in=nzout, out=zr);
+   
+   
 	  
    
    
