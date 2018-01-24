@@ -1,0 +1,29 @@
+// This file was created by Thomas Hillenbrand
+// as an extra component used as part of 
+// the course www.nand2tetris.org
+// Created: 1/24/2018
+
+/**
+ * 16-way Nor: 
+ * out = (in[0] or in[1] or ... or in[7])
+ *
+ * |         in         | out |
+ * |  0000000000000000  |  1  |
+ * |  1111111111111111  |  0  |
+ * |  0001000000000000  |  0  |
+ * |  0000000100000000  |  0  |
+ * |  0010011011111111  |  0  |
+ * 
+ */
+
+CHIP Nor16Way {
+    IN in[16];
+    OUT out;
+
+    PARTS:
+    Or8Way (in=in[0..7], out=t1);
+    Or8Way (in=in[8..15], out=t2);
+	Or (a=t1, b=t2, out=OrOut);
+	Not (in=OrOut, out=out);
+	
+}
