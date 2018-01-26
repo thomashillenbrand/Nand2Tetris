@@ -17,6 +17,7 @@ CHIP RAM64 {
 
     PARTS:
     
+    // Choose RAM unit
     DMux8Way (in=load, sel=address[0..2],
     	a=ram1Load,b=ram2Load,c=ram3Load,d=ram4Load,
     	e=ram5Load,f=ram6Load,g=ram7Load,h=ram8Load);
