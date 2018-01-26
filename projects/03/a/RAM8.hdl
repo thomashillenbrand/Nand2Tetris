@@ -17,11 +17,6 @@ CHIP RAM8 {
 
     PARTS:
 
-    // Select Register to point to
-    // Need to implement this chip
-    DMux8Way16 (in=in, sel=address,
-    	a=a,b=b,c=c,d=d,e=e,f=f,g=g,h=h);
-
     // Use the given load value as the input. This gate will return
     // the given load value for given register address.
     // A register's load value will be one only when the given load value is
@@ -30,14 +25,14 @@ CHIP RAM8 {
     	a=aLoad,b=bLoad,c=cLoad,d=dLoad,e=eLoad,f=fLoad,g=gLoad,h=hLoad);
     
     //Set of 8 Registers
-    Register (in=a, load=aLoad, out=r1);
-    Register (in=b, load=bLoad, out=r2);
-    Register (in=c, load=cLoad, out=r3);
-    Register (in=d, load=dLoad, out=r4);
-    Register (in=e, load=eLoad, out=r5);
-    Register (in=f, load=fLoad, out=r6);
-    Register (in=g, load=gLoad, out=r7);
-    Register (in=h, load=hLoad, out=r8);
+    Register (in=in, load=aLoad, out=r1);
+    Register (in=in, load=bLoad, out=r2);
+    Register (in=in, load=cLoad, out=r3);
+    Register (in=in, load=dLoad, out=r4);
+    Register (in=in, load=eLoad, out=r5);
+    Register (in=in, load=fLoad, out=r6);
+    Register (in=in, load=gLoad, out=r7);
+    Register (in=in, load=hLoad, out=r8);
 
     //Select which register value to output based on address
     Mux8Way16 (a=r1, b=r2, c=r3, d=r4, e=r5, f=r6, g=r7, h=r8,
