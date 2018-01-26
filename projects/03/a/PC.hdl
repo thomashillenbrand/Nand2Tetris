@@ -17,16 +17,25 @@ CHIP PC {
 
     PARTS:
 	
-	//increment the current register state
+	// increment the current register state
 	Inc16 (in=registerOut, out=increment);
-	
-	// There are three control bits, thus we'll use Mux8Way to utilize the 3-bit sel control.
-	// The possible values are mapped to the input bits such that the if/elseif
-	// hierarchy is preserved for the output.
-	Mux8Way16 (a=registerOut, b=increment, c=in, d=in,
-		e=false, f=false, g=false, h=false, sel[0]=inc, sel[1]=load, sel[2]=reset,
-		out=MuxOut);
-    
+
+	// Emulate the if/elseif statements via a series of Mux gates.
+	// 1. First gate's inputs are the current output of the
+	// 	  register (registerOut) and the incremented value. 
+	//	  If inc == 1, the incremented value is passed thru
+	//	  as m1, otherwise registerOut is passed thru as m1.
+	// 2. Second gate's inputs are m1 and the PC chip's input
+	//	  value (in). If load == 1, the in value is passed thru
+	//	  as m2, otherise m1 is passed thru as m2.
+	// 3. Third gate's inputs are m2 and false (a 16-bit zero constant).
+	//	  If reset == 1, the false value is passed thru as MuxOut,
+	//	  otherwise m2 is passed thru as MuxOut.
+
+    Mux16 (a=registerOut, b=increment, sel=inc, out=m1);
+    Mux16 (a=m1, b=in, sel=load, out=m2);
+    Mux16 (a=m2, b=false, sel=reset, out=MuxOut);
+
 	// Register to store/output the counter value
 	Register (in=MuxOut, load=true, out=registerOut, out=out);
 	
