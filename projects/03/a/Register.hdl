@@ -31,5 +31,5 @@ CHIP Register {
 	Bit (in=in[13], load=load, out=out[13]);
 	Bit (in=in[14], load=load, out=out[14]);
 	Bit (in=in[15], load=load, out=out[15]);
-	
+
 }
