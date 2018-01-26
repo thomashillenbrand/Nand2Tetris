@@ -2,6 +2,7 @@
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
 // File name: projects/03/a/Bit.hdl
+// Updated by Tom Hillenbrand 1/25/2018
 
 /**
  * 1-bit register:
@@ -14,5 +15,7 @@ CHIP Bit {
     OUT out;
 
     PARTS:
-    // Put your code here:
+    Mux (a=DFFout, b=in, sel=load, out=Muxout);
+    DFF (in=Muxout, out=DFFout, out=out);
+
 }
