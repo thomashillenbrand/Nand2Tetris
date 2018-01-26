@@ -16,5 +16,18 @@ CHIP PC {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+	
+	//increment the current register state
+	Inc16 (in=registerOut, out=increment);
+	
+	// There are three control bits, thus we'll use Mux8Way to utilize the 3-bit sel control.
+	// The possible values are mapped to the input bits such that the if/elseif
+	// hierarchy is preserved for the output.
+	Mux8Way16 (a=registerOut, b=increment, c=in, d=in,
+		e=false, f=false, g=false, h=false, sel[0]=inc, sel[1]=load, sel[2]=reset,
+		out=MuxOut);
+    
+	// Register to store/output the counter value
+	Register (in=MuxOut, load=true, out=registerOut, out=out);
+	
 }
