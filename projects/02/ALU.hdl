@@ -42,12 +42,10 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   //provide a zero constant
-   Zero16 (in=x, out=zero);
    
    //X Presettings:
    //zx
-   Mux16 (a=x, b=zero, sel=zx, out=xpostzx);
+   Mux16 (a=x, b=false, sel=zx, out=xpostzx);
    
    //nx
    Not16 (in=xpostzx, out=notxpostzx);
@@ -57,7 +55,7 @@ CHIP ALU {
    
    //Y Presettings:
    //zy
-   Mux16 (a=y, b=zero, sel=zy, out=ypostzy);
+   Mux16 (a=y, b=false, sel=zy, out=ypostzy);
    
    //ny
    Not16 (in=ypostzy, out=notypostzy);
