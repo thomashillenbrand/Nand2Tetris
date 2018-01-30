@@ -26,22 +26,24 @@
  */
 
 CHIP Memory {
-    IN in[16], load, address[15];
+    IN in[16], load, address[15]; //address[0..14]
     OUT out[16];
 
     PARTS:
     // Put your code here:
 
-    // Either DMux or Mux to get hte proper values to be the out value.
-    // Need to specify which chip to actually load for.
-    // Are the addresses literally tied to these chips...how does that work?
+	//select which Chip to load into
+	DMux (in=load, sel=address[14], a=loadRam, b=loadScreen);
 
     // RAM16k chip [0, 16383]
-    RAM16K (in=, load=, address=, out=ramOut);
+    RAM16K (in=in, load=loadRam, address=address[0..13], out=ramOut);
 
     // SCREEN chip [16384, 24575]
-    Screen (in=, load=, address=, out=screenOut);
+    Screen (in=in, load=loadScreen, address=address[0..12], out=screenOut);
 
     // KEYBOARD chip [24576]
     Keyboard (out=kbdOut);
+	
+	// Select output
+	Mux4Way16 (a=ramOut, b=ramOut, c=screenOut, d=kbdOut, sel=address[13..14], out=out);
 }
