@@ -2,6 +2,7 @@
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
 // File name: projects/05/CPU.hdl
+// Updated by Tom Hillenbrand 1/30/2018
 
 /**
  * The Hack CPU (Central Processing unit), consisting of an ALU,
@@ -23,80 +24,77 @@
  * to their new values only in the next time step. If reset==1 then the 
  * CPU jumps to address 0 (i.e. pc is set to 0 in next time step) rather 
  * than to the address resulting from executing the current instruction. 
- */
+ *
+ *  instruction[0] 	  --> A or C-instruction
+ *  instruction[1..2] --> Unused
+ *  instruction[3]	  --> Affecting A or M register
+ *  instruction[4..9] --> Correspond to ALU control bits
+ *  instruction[10]   --> Write to A
+ *  instruction[11]	  --> Write to D
+ *  instruction[12]	  --> Write to M
+ *  instruction[13]	  --> Jmp is out < 0
+ *  instruction[14]	  --> Jmp is out = 0  these use ng and zr from ALU
+ *  instruction[15]	  --> Jmp is out > 0
+ *
+ * 
+ * TO DO:
+ *   - Implement jmps via the jmp bits and ng/zr outputs from ALU
+ *     into the load and inc control bits of the PC
+ *   - Determine whether to write ALU output to M via outM from the
+ *     writeM control bit value (instruction[12])
+ *        - outM may equal any value when writeM == 0
+ *	 - This Chip is coded backwards-- needs to be fixed.
+ *   	  - Bits are labeled as such: 
+ *     		001 --> bit[0]=1, bit[1]=0, bit[2]=0
+ *
+ *      
+ **/
 
-CHIP CPU {
+	CHIP CPU {
 
-    IN  inM[16],         // M value input  (M = contents of RAM[A])
-        instruction[16], // Instruction for execution
-        reset;           // Signals whether to re-start the current
-                         // program (reset==1) or continue executing
-                         // the current program (reset==0).
+		IN  inM[16],         // M value input  (M = contents of RAM[A])
+			instruction[16], // Instruction for execution
+			reset;           // Signals whether to re-start the current
+							 // program (reset==1) or continue executing
+							 // the current program (reset==0).
 
-    OUT outM[16],        // [] M value output, from ALU output
-        writeM,          // [] Write to M?, determined from instruction input
-        addressM[15],    // [X] Address in data memory (of M), output from A
-        pc[15];          // [X] address of next instruction, output from PC
+		OUT outM[16],        // [] M value output, from ALU output
+			writeM,          // [] Write to M?, determined from instruction input
+			addressM[15],    // [X] Address in data memory (of M), output from A
+			pc[15];          // [X] address of next instruction, output from PC
+			
+		PARTS:
 
+		//Instruction handling
+		// if instruction[0] == 0 --> A-instruction, use instruction as input
+		// if instruction[0] == 1 --> C-instruction, use ALU output as input
+		Mux16 (a=aluOutput, b=instruction, sel=instruction[0], out=instrMuxOut);
 		
-	// instruction[0] 	 --> A or C-instruction
-	// instruction[1..2] --> Unused
-	// instruction[3]	 --> Affecting A or M register
-	// instruction[4..9] --> Correspond to ALU control bits
-	// instruction[10] 	 --> Write to A
-	// instruction[11]	 --> Write to D
-	// instruction[12]	 --> Write to M
-	// instruction[13]	 --> Jmp is out < 0
-	// instruction[14]	 --> Jmp is out = 0  these use ng and zr from ALU
-	// instruction[15]	 --> Jmp is out > 0
-
-    /** 
-     * TO DO:
-     *   - implement jmps via the jmp bits and ng/zr outputs from ALU
-     *     into the load and inc control bits of the PC
-     *   - determine whether to write ALU output to M via outM from the
-     *     writeM control bit value (instruction[12])
-     *        - outM may equal any value when writeM == 0
-     *
-     *      bits are labeled as such: 
-     *          001: bit[0]=1, bit[1]=0, bit[2]=0
-     *
-     *      This Chip is coded backwards-- needs to be fixed.
-     *
-     **/
+		//Registers:
+		ARegister (in=instrMuxOut, load=instruction[10],
+			out[0..14]=addressM, out=aOutForPCin, aOutForALUin);
+		DRegister (in=aluOutput, load=instruction[11], out=dOutForALUin);
+		
+		// ALU input handling
+		// Chosen value dependent on a (instruction[3]).
+		// Output A-value if a == 0
+		// Output M-value (Memory[A]) if a == 1
+		Mux16 (a=aOutForALUin, b=inM, sel=instruction[3], out=MuxALUin);
+		
+		// ALU
+		// Control bits based on the instruction input
+		ALU(x=dOutForALUin, y=MuxALUin,
+			zx=instruction[4], nx=instruction[5], zy=instruction[6],
+			ny=instruction[7], f=instruction[8], no=instruction[9],
+			out=aluOutput, zr=zr, ng=ng);
+		
+		// Program Counter
+		// in comes from ARegister output
+		// load and inc determined from jmp bits
+		// reset = reset
+		// out is first 15 bits of 16-bit output
+		PC(in=aOutForPCin,load= ,inc= ,reset=reset ,out[0..14]=pc );
 		
 		
-    PARTS:
-
-	//Instruction handling
-	// if instruction[0] == 0 --> A-instruction, use instruction as input
-	// if instruction[0] == 1 --> C-instruction, use ALU output as input
-	Mux16 (a=aluOutput, b=instruction, sel=instruction[0], out=instrMuxOut);
-	
-	//Registers:
-	ARegister (in=instrMuxOut, load=instruction[10],
-		out[0..14]=addressM, out=aOutForPCin, aOutForALUin);
-	DRegister (in=aluOutput, load=instruction[11], out=dOutForALUin);
-	
-	// ALU input handling
-	// Chosen value dependent on a (instruction[3]).
-	// Output A-value if a == 0
-	// Output M-value (Memory[A]) if a == 1
-	Mux16 (a=aOutForALUin, b=inM, sel=instruction[3], out=MuxALUin);
-	
-	//ALU
-	ALU(x=dOutForALUin, y=MuxALUin,
-		zx=instruction[4], nx=instruction[5], zy=instruction[6],
-		ny=instruction[7], f=instruction[8], no=instruction[9],
-		out=aluOutput, zr=zr, ng=ng);
-	
-	// Program Counter
-	// in comes from ARegister output
-	// load and inc determined from jmp bits
-	// reset = reset
-	// out is first 15 bits of 16-bit output
-	PC(in=aOutForPCin,load= ,inc= ,reset=reset ,out[0..14]=pc );
-	
-	
-	
-}
+		
+	}
