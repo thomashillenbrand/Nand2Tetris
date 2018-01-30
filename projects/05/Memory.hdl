@@ -23,6 +23,11 @@
  * map. Access to address 0x6000 results in accessing the keyboard 
  * memory map. The behavior in these addresses is described in the 
  * Screen and Keyboard chip specifications given in the book.
+ *
+ * TO DO: 
+ *	- Need to check to make sure the bit numbering was not
+ * 	  reversed in this implementation, but still passed testing.
+ *
  */
 
 CHIP Memory {
