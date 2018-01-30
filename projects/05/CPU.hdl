@@ -47,8 +47,23 @@ CHIP CPU {
 	// instruction[11]	 --> Write to D
 	// instruction[12]	 --> Write to M
 	// instruction[13]	 --> Jmp is out < 0
-	// instruction[14]	 --> Jmp is out = 0
+	// instruction[14]	 --> Jmp is out = 0  these use ng and zr from ALU
 	// instruction[15]	 --> Jmp is out > 0
+
+    /** 
+     * TO DO:
+     *   - implement jmps via the jmp bits and ng/zr outputs from ALU
+     *     into the load and inc control bits of the PC
+     *   - determine whether to write ALU output to M via outM from the
+     *     writeM control bit value (instruction[12])
+     *        - outM may equal any value when writeM == 0
+     *
+     *      bits are labeled as such: 
+     *          001: bit[0]=1, bit[1]=0, bit[2]=0
+     *
+     *      This Chip is coded backwards-- needs to be fixed.
+     *
+     **/
 		
 		
     PARTS:
@@ -59,9 +74,9 @@ CHIP CPU {
 	Mux16 (a=aluOutput, b=instruction, sel=instruction[0], out=instrMuxOut);
 	
 	//Registers:
-	ARegister (in=instrMuxOut, load=true,
+	ARegister (in=instrMuxOut, load=instruction[10],
 		out[0..14]=addressM, out=aOutForPCin, aOutForALUin);
-	DRegister (in=aluOutput, load=true, out=dOutForALUin);
+	DRegister (in=aluOutput, load=instruction[11], out=dOutForALUin);
 	
 	// ALU input handling
 	// Chosen value dependent on a (instruction[3]).
@@ -73,7 +88,7 @@ CHIP CPU {
 	ALU(x=dOutForALUin, y=MuxALUin,
 		zx=instruction[4], nx=instruction[5], zy=instruction[6],
 		ny=instruction[7], f=instruction[8], no=instruction[9],
-		out=aluOutput, zr=, ng=);
+		out=aluOutput, zr=zr, ng=ng);
 	
 	// Program Counter
 	// in comes from ARegister output
