@@ -33,11 +33,55 @@ CHIP CPU {
                          // program (reset==1) or continue executing
                          // the current program (reset==0).
 
-    OUT outM[16],        // M value output
-        writeM,          // Write to M? 
-        addressM[15],    // Address in data memory (of M)
-        pc[15];          // address of next instruction
+    OUT outM[16],        // [] M value output, from ALU output
+        writeM,          // [] Write to M?, determined from instruction input
+        addressM[15],    // [X] Address in data memory (of M), output from A
+        pc[15];          // [X] address of next instruction, output from PC
 
+		
+	// instruction[0] 	 --> A or C-instruction
+	// instruction[1..2] --> Unused
+	// instruction[3]	 --> Affecting A or M register
+	// instruction[4..9] --> Correspond to ALU control bits
+	// instruction[10] 	 --> Write to A
+	// instruction[11]	 --> Write to D
+	// instruction[12]	 --> Write to M
+	// instruction[13]	 --> Jmp is out < 0
+	// instruction[14]	 --> Jmp is out = 0
+	// instruction[15]	 --> Jmp is out > 0
+		
+		
     PARTS:
-    // Put your code here:
+
+	//Instruction handling
+	// if instruction[0] == 0 --> A-instruction, use instruction as input
+	// if instruction[0] == 1 --> C-instruction, use ALU output as input
+	Mux16 (a=aluOutput, b=instruction, sel=instruction[0], out=instrMuxOut);
+	
+	//Registers:
+	ARegister (in=instrMuxOut, load=true,
+		out[0..14]=addressM, out=aOutForPCin, aOutForALUin);
+	DRegister (in=aluOutput, load=true, out=dOutForALUin);
+	
+	// ALU input handling
+	// Chosen value dependent on a (instruction[3]).
+	// Output A-value if a == 0
+	// Output M-value (Memory[A]) if a == 1
+	Mux16 (a=aOutForALUin, b=inM, sel=instruction[3], out=MuxALUin);
+	
+	//ALU
+	ALU(x=dOutForALUin, y=MuxALUin,
+		zx=instruction[4], nx=instruction[5], zy=instruction[6],
+		ny=instruction[7], f=instruction[8], no=instruction[9],
+		out=aluOutput, zr=, ng=);
+	
+	// Program Counter
+	// in comes from ARegister output
+	// load and inc determined from jmp bits
+	// reset = reset
+	// out is first 15 bits of 16-bit output
+	PC(in=aOutForPCin,load= ,inc= ,reset=reset ,out[0..14]=pc );
+	
+	
+	
 }
