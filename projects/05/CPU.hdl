@@ -72,7 +72,7 @@
 		
 		//Registers:
 		ARegister (in=instrMuxOut, load=instruction[5],
-			out[0..14]=addressM, out=aOutForPCin, aOutForALUin);
+			out[0..14]=addressM, out=aOutForPCin, out=aOutForALUin);
 		DRegister (in=aluOutput, load=instruction[4], out=dOutForALUin);
 		
 		// ALU input handling
@@ -86,14 +86,45 @@
 		ALU(x=dOutForALUin, y=MuxALUin,
 			zx=instruction[6], nx=instruction[7], zy=instruction[8],
 			ny=instruction[9], f=instruction[10], no=instruction[11],
-			out=aluOutput, zr=zr, ng=ng);
+			out=aluOutput, out=outM, zr=zr, ng=ng);
+			
+		// do we write M to memory?
+		And  (a=instruction[3], b=instruction[4], out=writeM);
 		
 		// Program Counter
 		// in comes from ARegister output
 		// load and inc determined from jmp bits
+		//	if 000 --> inc = 1, load = 0
+		//  if 111 --> load = 1
+		//	if any bit is 1, load = 1, but only based on certain control bits (nz, ng)
 		// reset = reset
 		// out is first 15 bits of 16-bit output
-		PC(in=aOutForPCin,load= ,inc= ,reset=reset ,out[0..14]=pc );
+		
+		// Are no jump bits asserted?
+		Or (a=instruction[0], b=instruction[1], out=t1);
+		Or (a=t1, b=instruction[2], out=t2);
+		Not (in=t2, out=pcInc);
+		
+		// are all jmp bits asserted?
+		And (a=instruction[0], b=instruction[1], out=t3);
+		And (a=t3, b=instruction[2], out=JMP);
+		
+		//is the ALU output > 0 and need to JMP?
+		Or  (a=ng, b=zr, out=ngORzr);
+		Not (in=ngORzr, out=ngNORzr);
+		And (a=ngNORzr, b=instruction[0], out=JGT);
+		
+		//is the ALU output == 0 and nede to JMP?
+		And (a=zr, b=instruction[1], out=JEQ);
+		
+		//is the ALU output < 0 and need to JMP?
+		And (a=ng, b=instruction[2], out=JLT);
+		
+		Or (a=JMP, b=JGT, out=t4);
+		Or (a=JLT, b=JEQ, out=t5);
+		Or (a=t4, b=t5, out=pcLoad);
+		
+		PC(in=aOutForPCin,load=pcLoad,inc=pcInc,reset=reset ,out[0..14]=pc);
 		
 		
 		
