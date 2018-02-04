@@ -58,74 +58,60 @@
 							 // program (reset==1) or continue executing
 							 // the current program (reset==0).
 
-		OUT outM[16],        // [] M value output, from ALU output
-			writeM,          // [] Write to M?, determined from instruction input
-			addressM[15],    // [X] Address in data memory (of M), output from A
-			pc[15];          // [X] address of next instruction, output from PC
+		OUT outM[16],        // M value output, from ALU output
+			writeM,          // Write to M?, determined from instruction input
+			addressM[15],    // Address in data memory (of M), output from A
+			pc[15];          // Address of next instruction, output from PC
 			
 		PARTS:
 
-		//Instruction handling
-		// if instruction[15] == 0 --> A-instruction, use instruction as input
-		// if instruction[15] == 1 --> C-instruction, use ALU output as input
-		Mux16 (a=aluOutput, b=instruction, sel=instruction[15], out=instrMuxOut);
+		// Instruction handling:
+		//  if instruction[15] == 0 --> A-instruction
+		//  if instruction[15] == 1 --> C-instruction
+		Not (in=instruction[15], out=Ainstruction);
+		Not (in=Ainstruction, out=Cinstruction);
 		
-		//Registers:
-		ARegister (in=instrMuxOut, load=instruction[5],
-			out[0..14]=addressM, out=aOutForPCin, out=aOutForALUin);
-		DRegister (in=aluOutput, load=instruction[4], out=dOutForALUin);
+		// Is C-instruction and write to A-register?
+		And (a=Cinstruction, b=instruction[5], out=ALUtoA);
 		
-		// ALU input handling
-		// Chosen value dependent on a (instruction[12]).
-		// Output A-value if a == 0
-		// Output M-value (Memory[A]) if a == 1
-		Mux16 (a=aOutForALUin, b=inM, sel=instruction[12], out=MuxALUin);
+		// Determine A-regiser input:
+		Mux16 (a=instruction, b=ALUout, sel=ALUtoA, out=instrMuxOut);
+
+		// Load A if A-instruction or C-instruction and write to A
+		Or (a=Ainstruction, b=ALUtoA, out=loadA);
+		ARegister (in=instrMuxOut, load=loadA, out=Aout);
+	
+		// Select A or M based on a-bit
+		Mux16 (a=Aout, b=inM, sel=instruction[12], out=AMout);
+		
+
+		// Load the D register from ALU
+		And (a=Cinstruction, b=instruction[4], out=loadD);
+		DRegister (in=ALUout, load=loadD, out=Dout);
 		
 		// ALU
 		// Control bits based on the instruction input
-		ALU(x=dOutForALUin, y=MuxALUin,
-			zx=instruction[6], nx=instruction[7], zy=instruction[8],
-			ny=instruction[9], f=instruction[10], no=instruction[11],
-			out=aluOutput, out=outM, zr=zr, ng=ng);
-			
-		// do we write M to memory?
-		And  (a=instruction[3], b=instruction[4], out=writeM);
+		ALU(x=Dout, y=AMout,
+			zx=instruction[11], nx=instruction[10], zy=instruction[9],
+			ny=instruction[8], f=instruction[7], no=instruction[6],
+			out=ALUout, zr=ZRout, ng=NGout);
 		
-		// Program Counter
-		// in comes from ARegister output
-		// load and inc determined from jmp bits
-		//	if 000 --> inc = 1, load = 0
-		//  if 111 --> load = 1
-		//	if any bit is 1, load = 1, but only based on certain control bits (nz, ng)
-		// reset = reset
-		// out is first 15 bits of 16-bit output
+		Or16 (a=false, b=Aout, out[0..14]=addressM);
+		Or16 (a=false, b=ALUout, out=outM);
+		And (a=Cinstruction, b=instruction[3], out=writeM);
 		
-		// Are no jump bits asserted?
-		Or (a=instruction[0], b=instruction[1], out=t1);
-		Or (a=t1, b=instruction[2], out=t2);
-		Not (in=t2, out=pcInc);
+		And (a=ZRout, b=instruction[1], out=JEQ); // is zero and jmp
+		And (a=NGout, b=instruction[2], out=JLT); // is neg and jmp
+		Or (a=ZRout, b=NGout, out=zeroOrNeg);
+		Not (in=zeroOrNeg, out=positive);
+		And (a=positive, b=instruction[0], out=JGT);
 		
-		// are all jmp bits asserted?
-		And (a=instruction[0], b=instruction[1], out=t3);
-		And (a=t3, b=instruction[2], out=JMP);
+		Or (a=JEQ, b=JLT, out=JLE);
+		Or (a=JLE, b=JGT, out=jump);
 		
-		//is the ALU output > 0 and need to JMP?
-		Or  (a=ng, b=zr, out=ngORzr);
-		Not (in=ngORzr, out=ngNORzr);
-		And (a=ngNORzr, b=instruction[0], out=JGT);
-		
-		//is the ALU output == 0 and nede to JMP?
-		And (a=zr, b=instruction[1], out=JEQ);
-		
-		//is the ALU output < 0 and need to JMP?
-		And (a=ng, b=instruction[2], out=JLT);
-		
-		Or (a=JMP, b=JGT, out=t4);
-		Or (a=JLT, b=JEQ, out=t5);
-		Or (a=t4, b=t5, out=pcLoad);
-		
-		PC(in=aOutForPCin,load=pcLoad,inc=pcInc,reset=reset ,out[0..14]=pc);
-		
+		And (a=Cinstruction, b=jump, out=PCload);
+		Not (in=PCload, out=PCinc);
+		PC (in=Aout, inc=PCinc, load=PCload, reset=reset, out[0..14]=pc);
 		
 		
 	}
