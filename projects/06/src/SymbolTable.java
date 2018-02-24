@@ -81,4 +81,25 @@ public class SymbolTable {
     }
 
 
+    /**
+     * to String Method for the Symbole Table
+     *
+     * @return
+     */
+
+    public String toString(){
+        StringBuffer toString = new StringBuffer();
+        for(String key : symbolMap.keySet()){
+            toString = toString.append(key);
+            toString = toString.append(" : ");
+            toString = toString.append(symbolMap.get(key));
+            toString = toString.append("\n");
+
+        }
+
+
+        return toString.toString();
+    }
+
+
 }

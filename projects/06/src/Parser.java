@@ -1,10 +1,7 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The Parser class is used to parse each line of an .asm program
@@ -17,116 +14,180 @@ import java.util.List;
 
 public class Parser implements AutoCloseable{
 
-  private static final String A_COMMAND = "a_command";
-  private static final String C_COMMAND = "c_command";
-  private static final String L_COMMAND = "l_command";
+    private static final String CMNT_PREFIX   = "//";
+    private static final String A_PREFIX      = "@";
+    private static final String L_PREFIX      = "(";
+    private static final String A_COMMAND     = "a_command";
+    private static final String C_COMMAND     = "c_command";
+    private static final String L_COMMAND     = "l_command";
+    private static final String COMMENT       = "comment";
+    private static final String EMPTY         = "empty";
 
-  private static final char A_PREFIX = '@';
-  private static final char L_PREFIX = '(';
+    private BufferedReader reader;
+    private String currentLine;
+    private List<String> assemblyProgramLines;
 
-  private BufferedReader reader;
-  private String currentLine;
-  private List<String> assemblyProgramLines;
-  private SymbolTable symbolTable;
+    /**
+     * Constructor for Parser class. Loads the input .asm file and the
+     * initialized SymboleTable by default.
+     *
+     * @param input
+     * @throws FileNotFoundException
+     */
 
-  /**
-   * Constructor for Parser class. Loads the input .asm file and the
-   * initialized SymboleTable by default.
-   *
-   * @param input
-   * @throws FileNotFoundException
-   */
-
-  public Parser(File input, SymbolTable symbolTable) throws FileNotFoundException {
-    this.reader = new BufferedReader(new FileReader(input));
-    this.assemblyProgramLines = new ArrayList<String>();
-    this.currentLine = new String();
-    this.symbolTable = symbolTable;
-
-  }
-
-  /**
-   * Method to return a boolean indicating whether or not the
-   * pareser has more lines ot read fom the .asm file.
-   *
-   * @return
-   * @throws IOException
-   */
-  public boolean hasMoreCommands() throws IOException {
-    return this.reader.ready();
-  }
-
-  /**
-   * Method to advance the parser by one line in the .asm file
-   * @throws IOException
-   */
-  public void advance() throws IOException {
-    this.currentLine = reader.readLine();
-  }
-
-  public String commandType(String currentLine){
-    switch (currentLine.charAt(0)) {
-      case A_PREFIX:
-        return A_COMMAND;
-      case L_PREFIX:
-        return L_COMMAND;
-      default:
-        return C_COMMAND;
-    }
-
-  }
-
-
-  /**
-   * Method to load a new .asm file into the parser.
-   *
-   * @param filePath
-   * @throws IOException
-   */
-
-  public void loadFile(String filePath) throws Exception {
-    File file = new File(filePath);
-    this.close();
-    this.reader = new BufferedReader(new FileReader(file));
-
-  }
-
-  /**
-   * Method to close the parser
-   *
-   * @throws Exception
-   */
-
-  @Override
-  public void close() throws Exception {
-    this.reader.close();
-  }
-
-
-  /**
-   * Getters and Setters
-   */
-
-  public String getCurrentLine(){
-    return this.currentLine;
-  }
-
-  public void setCurrentLine(String line){
-    this.currentLine = line;
-  }
-
-
-  public void test() throws Exception{
-
-    while(this.hasMoreCommands()){
-      this.advance();
-      System.out.println("current line: "+this.currentLine);
-      System.out.println("Current line command type: "+this.commandType(this.currentLine));
-      System.out.println("++++++++++++++++++++++++++++++++++");
+    public Parser(File input) throws FileNotFoundException {
+        this.reader = new BufferedReader(new FileReader(input));
+        this.assemblyProgramLines = new ArrayList<String>();
+        this.currentLine = new String();
 
     }
 
+    /**
+     * Method to return a boolean indicating whether or not the
+     * pareser has more lines ot read fom the .asm file.
+     *
+     * @return
+     * @throws IOException
+     */
+    public boolean hasMoreCommands() throws IOException {
+        return this.reader.ready();
+    }
 
-  }
+    /**
+     * Method to advance the parser by one line in the .asm file
+     * @throws IOException
+     */
+
+    public void advance() throws IOException {
+        this.currentLine = reader.readLine();
+    }
+
+    /**
+     *  Method to return the type of instruction line the currentLine is
+     *
+     * @param currentLine
+     * @return
+     */
+
+    public String getCommandType(String currentLine){
+
+        if(currentLine.isEmpty()) return EMPTY;
+        else if(currentLine.startsWith(CMNT_PREFIX)) return COMMENT;
+        else if(currentLine.startsWith(A_PREFIX)) return A_COMMAND;
+        else if(currentLine.startsWith(L_PREFIX)) return L_COMMAND;
+        else return C_COMMAND;
+
+    }
+
+    /**
+     * Method to trim an instruction line of whitespaces and comments
+     *
+     * @param line
+     * @return
+     */
+
+    public String trimInstruction(String line){
+        line = line.trim();
+        String[] splitLine = line.split(" ");
+        return splitLine[0];
+
+    }
+
+    /**
+     * Method to trim L_Command lines into the relevant symbole value to be
+     * added to the symbole table.
+     * @param line
+     * @return
+     */
+
+    public String trimJumpLabel(String line){
+        line=line.trim();
+        line=line.substring(1, line.length()-1);
+
+        return line;
+
+    }
+
+    /**
+     * This method should make the parser read thru the .asm file for the first
+     * time. On the first pass the parser should:
+     *  1. Strip out all comment lines and blank lines
+     *  2. Add each (XXX) L_Command to the symbol table (symbole and address)
+     *  3. Trim each instruction line of white space and comments, add line to
+     *     instruction list.
+     *
+     * End result is the assemblyProgramLines list that will be translated.
+     * @param symboleTable
+     * @throws IOException
+     */
+    public void firstPass(SymbolTable symboleTable) throws IOException {
+        Objects.requireNonNull(symboleTable);
+        String commandType;
+        String line;
+        int nextAddress;
+
+        while(this.hasMoreCommands()){
+            nextAddress = assemblyProgramLines.size();
+            this.advance();
+            line = this.currentLine;
+            //System.out.println();
+
+            commandType = this.getCommandType(line);
+            if(commandType.equals(COMMENT) || commandType.equals(EMPTY)) continue;
+
+            else if(commandType.equals(C_COMMAND) || commandType.equals(A_COMMAND)){
+                line = this.trimInstruction(line);
+                this.assemblyProgramLines.add(line);
+
+            }
+            else if(commandType.equals(L_COMMAND)){
+                line = this.trimJumpLabel(line);
+                if(symboleTable.contains(line)) continue;
+                else symboleTable.addEntry(line, nextAddress);
+
+            }
+            else throw new IOException("Could not determine command type for line: "+line);
+
+        }
+        
+    }
+
+    /**
+     * Method to close the parser
+     *
+     * @throws IOException
+     */
+
+    @Override
+    public void close() throws IOException {
+        this.reader.close();
+    }
+
+
+    /**
+     * Getters and Setters
+     */
+
+    public String getCurrentLine(){
+        return this.currentLine;
+    }
+
+    public void setCurrentLine(String line){
+        this.currentLine = line;
+    }
+
+    public void test() throws Exception{
+
+        while(this.hasMoreCommands()){
+            this.advance();
+            System.out.println("current line: "+this.currentLine);
+            System.out.println("empty: "+this.currentLine.isEmpty());
+            System.out.println("null: "+this.currentLine == null);
+            //System.out.println("Current line command type: "+this.commandType(this.currentLine));
+            // System.out.println("++++++++++++++++++++++++++++++++++");
+
+        }
+
+    }
 
 }

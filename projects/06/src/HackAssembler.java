@@ -14,14 +14,12 @@ import java.io.IOException;
 
 public class HackAssembler {
 
-    public static final String FILE_PATH = "C:/Users/thillenbrand/IntellijProjects/Nand2Tetris/projects/06/add/Add.asm";
+    //public static final String FILE_PATH = "C:/Users/thillenbrand/IntellijProjects/Nand2Tetris/projects/06/add/Add.asm";
+    //public static final String FILE_PATH = "/home/thomashillenbrand/Projects/Nand2Tetris/projects/06/add/Add.asm";
+    public static final String FILE_PATH = "/home/thomashillenbrand/Projects/Nand2Tetris/projects/06/max/Max.asm";
 
     public static void main(String[] args) throws Exception {
         String inputFilePath = (args.length > 0) ? args[0] : FILE_PATH;
-
-        int x = 31;
-        System.out.println(Integer.toBinaryString(x).length());
-
 
         HackAssembler assembler = new HackAssembler();
         assembler.assemble(inputFilePath);
@@ -42,10 +40,11 @@ public class HackAssembler {
      * @param filePath
      */
     public void assemble(String filePath) throws Exception {
+
+        SymbolTable symbolTable = new SymbolTable();
         File inputFile= new File(filePath);
         Parser parser = new Parser(inputFile);
-        parser.test();
-
+        parser.firstPass(symbolTable);
 
     }
 
