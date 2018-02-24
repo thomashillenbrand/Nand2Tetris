@@ -122,34 +122,35 @@ public class Parser implements AutoCloseable{
      */
     public void firstPass(SymbolTable symboleTable) throws IOException {
         Objects.requireNonNull(symboleTable);
-        String commandType;
-        String line;
         int nextAddress;
+        String line;
+        String commandType;
 
         while(this.hasMoreCommands()){
-            nextAddress = assemblyProgramLines.size();
+            nextAddress = this.assemblyProgramLines.size();
             this.advance();
-            line = this.currentLine;
-            //System.out.println();
+            line = this.getCurrentLine();
 
             commandType = this.getCommandType(line);
-            if(commandType.equals(COMMENT) || commandType.equals(EMPTY)) continue;
-
-            else if(commandType.equals(C_COMMAND) || commandType.equals(A_COMMAND)){
+            if(commandType.equals(C_COMMAND) || commandType.equals(A_COMMAND)){
                 line = this.trimInstruction(line);
                 this.assemblyProgramLines.add(line);
 
             }
             else if(commandType.equals(L_COMMAND)){
                 line = this.trimJumpLabel(line);
-                if(symboleTable.contains(line)) continue;
-                else symboleTable.addEntry(line, nextAddress);
+                if(!symboleTable.contains(line)) symboleTable.addEntry(line, nextAddress);
 
             }
-            else throw new IOException("Could not determine command type for line: "+line);
 
         }
-        
+
+    }
+
+
+    public void secondPass(SymbolTable symbolTable){
+
+
     }
 
     /**
@@ -176,18 +177,11 @@ public class Parser implements AutoCloseable{
         this.currentLine = line;
     }
 
-    public void test() throws Exception{
-
-        while(this.hasMoreCommands()){
-            this.advance();
-            System.out.println("current line: "+this.currentLine);
-            System.out.println("empty: "+this.currentLine.isEmpty());
-            System.out.println("null: "+this.currentLine == null);
-            //System.out.println("Current line command type: "+this.commandType(this.currentLine));
-            // System.out.println("++++++++++++++++++++++++++++++++++");
-
-        }
-
+    public List<String> getAssemblyProgramLines() {
+        return this.assemblyProgramLines;
     }
 
+    public void setAssemblyProgramLines(List<String> assemblyProgramLines) {
+        this.assemblyProgramLines = assemblyProgramLines;
+    }
 }
