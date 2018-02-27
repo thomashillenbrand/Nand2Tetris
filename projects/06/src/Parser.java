@@ -196,6 +196,16 @@ public class Parser implements AutoCloseable{
 
     }
 
+    /**
+     * Method to parse an a-instruction. First the leading "@" is trimmed off. Next, we determine if the a-instruction
+     * provides a numerical address or a symbol. If its a numerical address, we return the line as-is. If its a symbol,
+     * we check for its existence in the symbolTable, give it the next available address in memory if it doesn't exist,
+     * and return the corresponding numerical address.
+     *
+     * @param line
+     * @param symbolTable
+     * @return String representation of the numerical address specified by the instruction.
+     */
     private String parseA(String line, SymbolTable symbolTable) {
         line = line.substring(1, line.length()); //remove the @
         int currentMemLoc = symbolTable.getCurrentMemLoc();
