@@ -18,11 +18,14 @@ import java.util.HashMap;
 
 public class SymbolTable {
 
+    private int currentMemLoc;
     private HashMap<String, Integer> symbolMap;
 
     /**
      * SymbolTable constructor that will the table with all default
      * values pre-loaded.
+     *
+     * Initializes first available memory location value ot be 16.
      *
      */
 
@@ -36,6 +39,10 @@ public class SymbolTable {
         addEntry("ARG", 2);
         addEntry("THIS", 3);
         addEntry("THAT", 4);
+        addEntry("SCREEN", 16384);
+        addEntry("KBD", 24576);
+
+        this.currentMemLoc = 16;
 
     }
 
@@ -99,6 +106,14 @@ public class SymbolTable {
 
 
         return toString.toString();
+    }
+
+    public int getCurrentMemLoc(){
+        return this.currentMemLoc;
+    }
+
+    public void advCurrentMemLoc(){
+        this.currentMemLoc++;
     }
 
 

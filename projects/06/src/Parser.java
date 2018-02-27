@@ -175,13 +175,13 @@ public class Parser implements AutoCloseable{
 
         for(String line : this.assemblyProgramLines){
             commandType = this.getCommandType(line);
-            System.out.println("Line: "+line);
+            System.out.println("Pre-parse Line: "+line);
             System.out.println("Type: "+commandType);
 
             switch(commandType){
                 case A_COMMAND:
-                    
-                    t.translateA(line.substring(1, line.length()));
+                    line = this.parseA(line, symbolTable);
+                    t.translateA(line);
                     break;
                 case C_COMMAND:
                     HashMap<String, String> cMnemonics = this.parseC(line);
@@ -189,12 +189,41 @@ public class Parser implements AutoCloseable{
                     System.out.println(cMnemonics.toString());
                     break;
             }
+            System.out.println("Post-parse line: "+line);
             System.out.println("=======================================");
 
         }
 
     }
 
+    private String parseA(String line, SymbolTable symbolTable) {
+        line = line.substring(1, line.length()); //remove the @
+        int currentMemLoc = symbolTable.getCurrentMemLoc();
+
+        try{
+            Integer.parseInt(line);
+
+        } catch(NumberFormatException e){
+            if(symbolTable.contains(line)) line = Integer.toString(symbolTable.getAddress(line));
+            else{
+                symbolTable.addEntry(line, currentMemLoc);
+                line = Integer.toString(currentMemLoc);
+                symbolTable.advCurrentMemLoc();
+
+            }
+
+            return line;
+        }
+
+        return line;
+    }
+
+    /**
+     * Method to parse a c-instruction into its indivual components, i.e. DEST, COMP, and JMP.
+     *
+     * @param line
+     * @return Map with the key/value pairs being hte mnemonics and their values.
+     */
     private HashMap parseC(String line) {
         HashMap<String, String> cMnemonics = new HashMap<String, String>();
         boolean hasDest = line.contains(DEST_SYMBOL);
@@ -211,7 +240,6 @@ public class Parser implements AutoCloseable{
             cMnemonics.put("jmp", line.substring(index+1, line.length()));
             cMnemonics.put("comp", line.substring(0, index));
         }
-
 
         return cMnemonics;
     }

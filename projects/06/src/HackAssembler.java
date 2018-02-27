@@ -14,24 +14,12 @@ import java.io.IOException;
 
 public class HackAssembler {
 
-    //public static final String FILE_PATH = "C:/Users/thillenbrand/IntellijProjects/Nand2Tetris/projects/06/add/Add.asm";
+    public static final String FILE_PATH = "C:/Users/thillenbrand/IntellijProjects/Nand2Tetris/projects/06/rect/Rect.asm";
     //public static final String FILE_PATH = "/home/thomashillenbrand/Projects/Nand2Tetris/projects/06/add/Add.asm";
-    public static final String FILE_PATH = "/home/thomashillenbrand/Projects/Nand2Tetris/projects/06/rect/Rect.asm";
+    //public static final String FILE_PATH = "/home/thomashillenbrand/Projects/Nand2Tetris/projects/06/rect/Rect.asm";
     public static void main(String[] args) throws Exception {
-        String inputFilePath = (args.length > 0) ? args[0] : FILE_PATH;
 
-//        String intString = "123";
-//        String str = "abcd";
-//
-//        try{
-//            Integer.parseInt(str);
-//        }catch (NumberFormatException e) {
-//            System.out.println("not a number");
-//        }
-//
-//        System.out.println(Integer.parseInt(intString));
-
-
+        String inputFilePath = FILE_PATH;
         HackAssembler assembler = new HackAssembler();
         assembler.assemble(inputFilePath);
 
@@ -57,10 +45,11 @@ public class HackAssembler {
         Parser parser = new Parser(inputFile);
         System.out.println("Start");
         parser.firstPass(symbolTable);
-        System.out.println("First pas complete: ");
+        System.out.println("First pass complete: ");
         System.out.println(symbolTable.toString());
         System.out.println("Start second pass");
         parser.secondPass(symbolTable);
+        System.out.println(symbolTable.toString());
         System.out.println("complete");
 
     }
