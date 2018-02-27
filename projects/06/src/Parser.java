@@ -1,5 +1,10 @@
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -14,6 +19,8 @@ import java.util.Objects;
 
 public class Parser implements AutoCloseable{
 
+    private static final String DEST_SYMBOL   = "=";
+    private static final String JMP_SYMBOL   = ";";
     private static final String CMNT_PREFIX   = "//";
     private static final String A_PREFIX      = "@";
     private static final String L_PREFIX      = "(";
@@ -49,7 +56,7 @@ public class Parser implements AutoCloseable{
      * @return
      * @throws IOException
      */
-    public boolean hasMoreCommands() throws IOException {
+    private boolean hasMoreCommands() throws IOException {
         return this.reader.ready();
     }
 
@@ -58,7 +65,7 @@ public class Parser implements AutoCloseable{
      * @throws IOException
      */
 
-    public void advance() throws IOException {
+    private void advance() throws IOException {
         this.currentLine = reader.readLine();
     }
 
@@ -69,7 +76,7 @@ public class Parser implements AutoCloseable{
      * @return
      */
 
-    public String getCommandType(String currentLine){
+    private String getCommandType(String currentLine){
 
         if(currentLine.isEmpty()) return EMPTY;
         else if(currentLine.startsWith(CMNT_PREFIX)) return COMMENT;
@@ -86,7 +93,7 @@ public class Parser implements AutoCloseable{
      * @return
      */
 
-    public String trimInstruction(String line){
+    private String trimInstruction(String line){
         line = line.trim();
         String[] splitLine = line.split(" ");
         return splitLine[0];
@@ -100,7 +107,7 @@ public class Parser implements AutoCloseable{
      * @return
      */
 
-    public String trimJumpLabel(String line){
+    private String trimJumpLabel(String line){
         line=line.trim();
         line=line.substring(1, line.length()-1);
 
@@ -132,25 +139,81 @@ public class Parser implements AutoCloseable{
             line = this.getCurrentLine();
 
             commandType = this.getCommandType(line);
-            if(commandType.equals(C_COMMAND) || commandType.equals(A_COMMAND)){
-                line = this.trimInstruction(line);
-                this.assemblyProgramLines.add(line);
-
-            }
-            else if(commandType.equals(L_COMMAND)){
-                line = this.trimJumpLabel(line);
-                if(!symboleTable.contains(line)) symboleTable.addEntry(line, nextAddress);
-
+            switch(commandType){
+                case C_COMMAND: case A_COMMAND:
+                    line = this.trimInstruction(line);
+                    this.assemblyProgramLines.add(line);
+                    break;
+                case L_COMMAND:
+                    line = this.trimJumpLabel(line);
+                    if(!symboleTable.contains(line)) symboleTable.addEntry(line, nextAddress);
+                    break;
             }
 
         }
 
     }
 
+    /**
+     * This method causes the parser to do its second pass over the
+     * assembly program. This method will:
+     *   1. Read each line from the assemblyProgramLines list and
+     *      classify it as an A or C command.
+     *   2. If its an A command, indicate as such and pass it to the Translator
+     *   3. If its a C command, parse the line into its components and pass it
+     *      to the Translator
+     *
+     * @param symbolTable
+     */
 
-    public void secondPass(SymbolTable symbolTable){
+    public void secondPass(SymbolTable symbolTable) throws IOException {
+        String commandType;
+        String outPutFilePath = HackAssembler.FILE_PATH.replaceAll(".asm", ".hack");
+
+        Translator t = new Translator(outPutFilePath);
+        System.out.println(this.assemblyProgramLines.toString());
+
+        for(String line : this.assemblyProgramLines){
+            commandType = this.getCommandType(line);
+            System.out.println("Line: "+line);
+            System.out.println("Type: "+commandType);
+
+            switch(commandType){
+                case A_COMMAND:
+                    
+                    t.translateA(line.substring(1, line.length()));
+                    break;
+                case C_COMMAND:
+                    HashMap<String, String> cMnemonics = this.parseC(line);
+                    t.translateC(cMnemonics);
+                    System.out.println(cMnemonics.toString());
+                    break;
+            }
+            System.out.println("=======================================");
+
+        }
+
+    }
+
+    private HashMap parseC(String line) {
+        HashMap<String, String> cMnemonics = new HashMap<String, String>();
+        boolean hasDest = line.contains(DEST_SYMBOL);
+        boolean hasJmp = line.contains(JMP_SYMBOL);
 
 
+        if(hasDest){
+            int index = line.indexOf("=");
+            cMnemonics.put("dest", line.substring(0, index));
+            cMnemonics.put("comp", line.substring(index+1, line.length()));
+        }
+        if(hasJmp){
+            int index = line.indexOf(";");
+            cMnemonics.put("jmp", line.substring(index+1, line.length()));
+            cMnemonics.put("comp", line.substring(0, index));
+        }
+
+
+        return cMnemonics;
     }
 
     /**
