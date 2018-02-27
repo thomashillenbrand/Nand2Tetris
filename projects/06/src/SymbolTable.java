@@ -1,5 +1,3 @@
-import sun.awt.Symbol;
-
 import java.util.HashMap;
 
 /**
@@ -12,7 +10,6 @@ import java.util.HashMap;
  *
  *
  * author: Thomas Hillenbrand
- * last update: 2/22/2018
  *
  */
 
@@ -63,7 +60,8 @@ public class SymbolTable {
      * Method to check if the symbol table already contains a symbol value.
      *
      * @param symbol
-     * @return
+     * @return boolean indicating whether the symboleTable contains an address
+     *         for the input symbol.
      */
 
     public boolean contains(String symbol){
@@ -78,7 +76,7 @@ public class SymbolTable {
      * with the input symbol, then -1 is returned.
      *
      * @param symbol
-     * @return
+     * @return integer value of the address of the input symbol.
      */
 
     public int getAddress(String symbol){
@@ -91,7 +89,7 @@ public class SymbolTable {
     /**
      * to String Method for the Symbole Table
      *
-     * @return
+     * @return String representation of the SymbolTable contents.
      */
 
     public String toString(){
@@ -108,10 +106,18 @@ public class SymbolTable {
         return toString.toString();
     }
 
+    /**
+     * Method to get the address of the next available memory location.
+     *
+     * @return integer value of the memory location
+     */
     public int getCurrentMemLoc(){
         return this.currentMemLoc;
     }
 
+    /**
+     * Method to increment the next available memory location by one.
+     */
     public void advCurrentMemLoc(){
         this.currentMemLoc++;
     }

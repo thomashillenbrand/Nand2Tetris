@@ -2,7 +2,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
 
 /**
  * This class is used to actually convert the individual mnemonic
@@ -14,6 +14,10 @@ import java.util.Map;
  */
 
 public class Translator implements AutoCloseable{
+
+    private static final String COMPUTATION = "comp";
+    private static final String DESTINATION = "dest";
+    private static final String JUMP        = "jmp";
 
     private BufferedWriter writer;
     private HashMap<String, String> compMap;
@@ -55,9 +59,26 @@ public class Translator implements AutoCloseable{
 
     }
 
-    public void translateC(Map cMnemonics) throws IOException {
+    /**
+     * Method to translate a C-instruction into a line of 16--bit binary code
+     *
+     * @param cMnemonics
+     * @throws IOException
+     */
+    public void translateC(HashMap<String, String> cMnemonics) throws IOException {
+        String comp = cMnemonics.get(COMPUTATION);
+        String dest = (cMnemonics.get(DESTINATION) != null) ? cMnemonics.get(DESTINATION) : new String();
+        String jmp  = (cMnemonics.get(JUMP) != null) ? cMnemonics.get(JUMP) : new String();
+
+        Objects.requireNonNull(comp);
+
         StringBuffer instruction = new StringBuffer();
         instruction.append("111");
+        instruction.append(compMap.get(comp));
+        instruction.append(destMap.get(dest));
+        instruction.append(jumpMap.get(jmp));
+
+        this.write(instruction.toString());
 
     }
 
@@ -75,6 +96,14 @@ public class Translator implements AutoCloseable{
     }
 
     private void initializeDestMap() {
+        this.destMap.put("", "000");
+        this.destMap.put("M", "001");
+        this.destMap.put("D", "010");
+        this.destMap.put("MD", "011");
+        this.destMap.put("A", "100");
+        this.destMap.put("AM", "101");
+        this.destMap.put("AD", "110");
+        this.destMap.put("AMD", "111");
 
     }
 
@@ -86,9 +115,40 @@ public class Translator implements AutoCloseable{
         this.compMap.put("A", "0110000");
         this.compMap.put("M", "1110000");
         this.compMap.put("!D", "0001101");
+        this.compMap.put("!A", "0110001");
+        this.compMap.put("!M", "1110001");
+        this.compMap.put("-D", "0001111");
+        this.compMap.put("-A", "0110011");
+        this.compMap.put("-M", "1110011");
+        this.compMap.put("D+1", "0011111");
+        this.compMap.put("A+1", "0110111");
+        this.compMap.put("M+1", "1110111");
+        this.compMap.put("D-1", "0001110");
+        this.compMap.put("A-1", "0110010");
+        this.compMap.put("M-1", "1110010");
+        this.compMap.put("D+A", "0000010");
+        this.compMap.put("D+M", "1000010");
+        this.compMap.put("D-A", "0010011");
+        this.compMap.put("D-M", "1010011");
+        this.compMap.put("A-D", "0000111");
+        this.compMap.put("M-D", "1000111");
+        this.compMap.put("D&A", "0000000");
+        this.compMap.put("D&M", "1000000");
+        this.compMap.put("D|A", "0010101");
+        this.compMap.put("D|M", "1010101");
+
     }
 
     private void initializeJumpMap() {
+        this.jumpMap.put("", "000");
+        this.jumpMap.put("JGT", "001");
+        this.jumpMap.put("JEQ", "010");
+        this.jumpMap.put("JGE", "011");
+        this.jumpMap.put("JLT", "100");
+        this.jumpMap.put("JNE", "101");
+        this.jumpMap.put("JLE", "110");
+        this.jumpMap.put("JMP", "111");
+
     }
 
     /**

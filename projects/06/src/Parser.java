@@ -53,7 +53,7 @@ public class Parser implements AutoCloseable{
      * Method to return a boolean indicating whether or not the
      * pareser has more lines ot read fom the .asm file.
      *
-     * @return
+     * @return boolean indicating whether the parser has more lines to read.
      * @throws IOException
      */
     private boolean hasMoreCommands() throws IOException {
@@ -64,7 +64,6 @@ public class Parser implements AutoCloseable{
      * Method to advance the parser by one line in the .asm file
      * @throws IOException
      */
-
     private void advance() throws IOException {
         this.currentLine = reader.readLine();
     }
@@ -73,7 +72,7 @@ public class Parser implements AutoCloseable{
      *  Method to return the type of instruction line the currentLine is
      *
      * @param currentLine
-     * @return
+     * @return String representation of the command type.
      */
 
     private String getCommandType(String currentLine){
@@ -90,7 +89,7 @@ public class Parser implements AutoCloseable{
      * Method to trim an instruction line of whitespaces and comments
      *
      * @param line
-     * @return
+     * @return the trimmed instruction line.
      */
 
     private String trimInstruction(String line){
@@ -104,7 +103,7 @@ public class Parser implements AutoCloseable{
      * Method to trim L_Command lines into the relevant symbole value to be
      * added to the symbole table.
      * @param line
-     * @return
+     * @return the trimmed instruction line.
      */
 
     private String trimJumpLabel(String line){
@@ -175,8 +174,8 @@ public class Parser implements AutoCloseable{
 
         for(String line : this.assemblyProgramLines){
             commandType = this.getCommandType(line);
-            System.out.println("Pre-parse Line: "+line);
-            System.out.println("Type: "+commandType);
+            //System.out.println("Pre-parse Line: "+line);
+            //System.out.println("Type: "+commandType);
 
             switch(commandType){
                 case A_COMMAND:
@@ -189,8 +188,8 @@ public class Parser implements AutoCloseable{
                     System.out.println(cMnemonics.toString());
                     break;
             }
-            System.out.println("Post-parse line: "+line);
-            System.out.println("=======================================");
+            //System.out.println("Post-parse line: "+line);
+            //System.out.println("=======================================");
 
         }
 
