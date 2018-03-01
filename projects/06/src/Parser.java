@@ -170,7 +170,7 @@ public class Parser implements AutoCloseable{
         String outPutFilePath = HackAssembler.FILE_PATH.replaceAll(".asm", ".hack");
 
         Translator t = new Translator(outPutFilePath);
-        System.out.println(this.assemblyProgramLines.toString());
+        //System.out.println(this.assemblyProgramLines.toString());
 
         for(String line : this.assemblyProgramLines){
             commandType = this.getCommandType(line);
@@ -185,7 +185,7 @@ public class Parser implements AutoCloseable{
                 case C_COMMAND:
                     HashMap<String, String> cMnemonics = this.parseC(line);
                     t.translateC(cMnemonics);
-                    System.out.println(cMnemonics.toString());
+                    //System.out.println(cMnemonics.toString());
                     break;
             }
             //System.out.println("Post-parse line: "+line);
