@@ -125,7 +125,6 @@ public class VMParser {
     this.advance();
     currentLine = this.getCurrentLine();
     commandType = this.commandType(currentLine);
-    parsedLine.put("commandType", commandType);
 
     switch(commandType){
       case COMMENT: case EMPTY:
@@ -135,6 +134,7 @@ public class VMParser {
         parsedLine = this.getArgs(currentLine, commandType);
     }
 
+    parsedLine.put("commandType", commandType);
     return parsedLine;
 
   }
