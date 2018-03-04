@@ -78,23 +78,42 @@ public class VMCodeRunner implements AutoCloseable{
         sb.append("  @SP\n");
         sb.append("  M=M-1\n");
         break;
+      case AND:
+        sb.append("  @SP\n");
+        sb.append("  A=M-1\n");
+        sb.append("  D=M\n");
+        sb.append("  A=A-1\n");
+        sb.append("  M=M&D\n");
+        sb.append("  @SP\n");
+        sb.append("  M=M-1\n");
+        break;
+      case OR:
+        sb.append("  @SP\n");
+        sb.append("  A=M-1\n");
+        sb.append("  D=M\n");
+        sb.append("  A=A-1\n");
+        sb.append("  M=M|D\n");
+        sb.append("  @SP\n");
+        sb.append("  M=M-1\n");
+        break;
+      case EQ:
+        // TODO implement
+        break;
+      case GT:
+        // TODO implement
+        break;
+      case LT:
+        // TODO implement
+        break;
       case NEG:
         sb.append("  @SP\n");
         sb.append("  A=M-1\n");
         sb.append("  M=-M\n");
         break;
-      case EQ:
-
-        break;
-      case GT:
-        break;
-      case LT:
-        break;
-      case AND:
-        break;
-      case OR:
-        break;
       case NOT:
+        sb.append("  @SP\n");
+        sb.append("  A=M-1\n");
+        sb.append("  M=!M\n");
         break;
     }
 
