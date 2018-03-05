@@ -25,15 +25,17 @@ public class VMCodeRunner implements AutoCloseable{
 
   private BufferedWriter writer;
   private StringBuffer sb;
+  private int gtIndex, ltIndex, eqIndex;
 
   public VMCodeRunner(File outputFile) throws IOException {
     this.writer = new BufferedWriter(new FileWriter(outputFile));
-    sb = new StringBuffer();
+    this.sb = new StringBuffer();
+    this.gtIndex = this.ltIndex = this.eqIndex = 0;
+
 
   }
 
   public void write(HashMap<String, String> parsedLine) throws IOException {
-    // TODO implement writing of each line
     this.sb.setLength(0);
 
     switch(parsedLine.get(COMMAND_TYPE)){
@@ -59,6 +61,7 @@ public class VMCodeRunner implements AutoCloseable{
     String operation = parsedLine.get(LINE);
     this.sb.append("// "+operation+"\n");
 
+    // TODO this could probably be simplified.
     switch(operation){
       case ADD:
         sb.append("  @SP\n");
@@ -97,13 +100,71 @@ public class VMCodeRunner implements AutoCloseable{
         sb.append("  M=M-1\n");
         break;
       case EQ:
-        // TODO implement
+        this.eqIndex++;
+        sb.append("  @SP\n");
+        sb.append("  A=M-1\n");
+        sb.append("  D=M\n"); // D=y
+        sb.append("  A=A-1\n"); //M=x
+        sb.append("  D=D-M\n"); // D = y-x
+        sb.append("  @EQUAL"+this.eqIndex+"\n");
+        sb.append("  D;JEQ\n"); //Jump if D=0, i.e. y=x
+        sb.append("  D=0\n"); // false
+        sb.append("  @CONTINUE_EQ"+this.eqIndex+"\n");
+        sb.append("  0;JMP\n");
+        sb.append("(EQUAL"+this.eqIndex+")\n");
+        sb.append("  D=-1\n"); // true
+        sb.append("(CONTINUE_EQ"+this.eqIndex+")\n");
+        sb.append("  @SP\n"); //
+        sb.append("  A=M-1\n"); // M=addr(y)
+        sb.append("  A=A-1\n"); // A=addr(x); M=x
+        sb.append("  M=D\n"); // x = D
+        sb.append("  @SP\n");
+        sb.append("  M=M-1\n");
+
         break;
       case GT:
-        // TODO implement
+        this.gtIndex++;
+        sb.append("  @SP\n");
+        sb.append("  A=M-1\n");
+        sb.append("  D=M\n"); // D=y
+        sb.append("  A=A-1\n"); //M=x
+        sb.append("  D=M-D\n"); // D = x-y
+        sb.append("  @GT"+this.gtIndex+"\n");
+        sb.append("  D;JGT\n"); //Jump if D>0, i.e. x>y
+        sb.append("  D=0\n"); // false
+        sb.append("  @CONTINUE_GT"+this.gtIndex+"\n");
+        sb.append("  0;JMP\n");
+        sb.append("(GT"+this.gtIndex+")\n");
+        sb.append("  D=-1\n"); // true
+        sb.append("(CONTINUE_GT"+this.gtIndex+")\n");
+        sb.append("  @SP\n"); //
+        sb.append("  A=M-1\n"); // M=addr(y)
+        sb.append("  A=A-1\n"); // A=addr(x); M=x
+        sb.append("  M=D\n"); // x = D
+        sb.append("  @SP\n");
+        sb.append("  M=M-1\n");
         break;
       case LT:
-        // TODO implement
+        this.ltIndex++;
+        sb.append("  @SP\n");
+        sb.append("  A=M-1\n");
+        sb.append("  D=M\n"); // D=y
+        sb.append("  A=A-1\n"); //M=x
+        sb.append("  D=M-D\n"); // D = x-y
+        sb.append("  @LT"+this.ltIndex+"\n");
+        sb.append("  D;JLT\n"); //Jump if D<0, i.e. x<y
+        sb.append("  D=0\n"); // false
+        sb.append("  @CONTINUE_LT"+this.ltIndex+"\n");
+        sb.append("  0;JMP\n");
+        sb.append("(LT"+this.ltIndex+")\n");
+        sb.append("  D=-1\n"); // true
+        sb.append("(CONTINUE_LT"+this.ltIndex+")\n");
+        sb.append("  @SP\n"); //
+        sb.append("  A=M-1\n"); // M=addr(y)
+        sb.append("  A=A-1\n"); // A=addr(x); M=x
+        sb.append("  M=D\n"); // x = D
+        sb.append("  @SP\n");
+        sb.append("  M=M-1\n");
         break;
       case NEG:
         sb.append("  @SP\n");
@@ -169,6 +230,7 @@ public class VMCodeRunner implements AutoCloseable{
     File outputFile = new File(outputFilePath);
     this.close();
     this.writer = new BufferedWriter(new FileWriter(outputFile));
+    this.eqIndex = this.gtIndex = this.ltIndex = 0;
 
   }
 

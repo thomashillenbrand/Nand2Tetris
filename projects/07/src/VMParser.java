@@ -102,12 +102,15 @@ public class VMParser {
 
   /**
    * Method to return a boolean indicating whether a given line is an arithmetic expression.
+   * Trimming the line prior to checking the arithmeticCommands list shoudl eliminate
+   * trailing comments.
    * @param currentLine
    * @return
    */
   public boolean isArithmetic(String currentLine){
     List<String> arithmeticCommands = Arrays.asList("add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not");
-    return arithmeticCommands.contains(currentLine);
+    String trimmedLine = this.trimLine(currentLine);
+    return arithmeticCommands.contains(trimmedLine);
 
   }
 
