@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Objects;
 
 public class VMCodeRunner implements AutoCloseable{
 
@@ -124,26 +125,36 @@ public class VMCodeRunner implements AutoCloseable{
    * @return
    */
   private StringBuffer buildPushPopCommand(HashMap<String, String> parsedLine) {
-    // TODO implement generalized push/pop for any segment.
-    String[] splitLine = parsedLine.get(ARG2).split(" ");
+    String arg2 = parsedLine.get(ARG2);
+    Objects.requireNonNull(arg2);
+
+    String[] splitLine = arg2.split(" ");
     String segment = splitLine[0];
     String i = splitLine[1];
 
     this.sb.append("// "+parsedLine.get(LINE)+"\n");
-    switch(segment){
-      case CONSTANT:
-        this.sb.append("  @"+i+" \n");
-        this.sb.append("  D=A\n");
-        this.sb.append("  @SP\n");
-        this.sb.append("  A=M\n");
-        this.sb.append("  M=D\n");
-        this.sb.append("  @SP\n");
-        this.sb.append("  M=M+1\n");
-        break;
-      default:
-        // TODO implement non-constant segment push/pop translation
 
-    }
+    if(parsedLine.get(COMMAND_TYPE).equals(VMParser.C_POP)){
+      // TODO implement POP commands
+
+    }else if (parsedLine.get(COMMAND_TYPE).equals(VMParser.C_PUSH)) {
+
+      switch (segment) {
+        case CONSTANT:
+          this.sb.append("  @" + i + " \n");
+          this.sb.append("  D=A\n");
+          this.sb.append("  @SP\n");
+          this.sb.append("  A=M\n");
+          this.sb.append("  M=D\n");
+          this.sb.append("  @SP\n");
+          this.sb.append("  M=M+1\n");
+          break;
+        default:
+          // TODO implement non-constant segment push/pop translation
+
+      }
+
+    } else System.out.println("Command type not recognized: "+parsedLine.get(COMMAND_TYPE));
 
     return this.sb;
   }
