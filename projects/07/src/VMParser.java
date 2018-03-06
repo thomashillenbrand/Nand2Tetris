@@ -80,7 +80,7 @@ public class VMParser {
       case C_ARITHMETIC:
         args.put("arg1", currentLine);
         break;
-      case C_PUSH:
+      case C_PUSH: case C_POP:
         String[] splitLine = currentLine.split(" ", 2);
         args.put("arg1", splitLine[0]);
         args.put("arg2", splitLine[1]);
