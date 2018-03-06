@@ -25,12 +25,12 @@ public class VMCodeRunner implements AutoCloseable{
 
   private BufferedWriter writer;
   private StringBuffer sb;
-  private int gtIndex, ltIndex, eqIndex;
+  private int eqIndex;
 
   public VMCodeRunner(File outputFile) throws IOException {
     this.writer = new BufferedWriter(new FileWriter(outputFile));
     this.sb = new StringBuffer();
-    this.gtIndex = this.ltIndex = this.eqIndex = 0;
+    this.eqIndex = 0;
 
 
   }
@@ -61,57 +61,39 @@ public class VMCodeRunner implements AutoCloseable{
     String operation = parsedLine.get(LINE);
     this.sb.append("// "+operation+"\n");
 
-    // TODO this could probably be simplified.
     switch(operation){
-      case ADD:
+      case ADD: case SUB: case AND: case OR:
         sb.append("  @SP\n");
         sb.append("  A=M-1\n");
         sb.append("  D=M\n");
         sb.append("  A=A-1\n");
-        sb.append("  M=M+D\n");
+
+        if(operation.equals(ADD)) sb.append("  M=M+D\n");
+        if(operation.equals(SUB)) sb.append("  M=M-D\n");
+        if(operation.equals(AND)) sb.append("  M=M&D\n");
+        if(operation.equals(OR)) sb.append("  M=M|D\n");
+
         sb.append("  @SP\n");
         sb.append("  M=M-1\n");
         break;
-      case SUB:
-        sb.append("  @SP\n");
-        sb.append("  A=M-1\n");
-        sb.append("  D=M\n");
-        sb.append("  A=A-1\n");
-        sb.append("  M=M-D\n");
-        sb.append("  @SP\n");
-        sb.append("  M=M-1\n");
-        break;
-      case AND:
-        sb.append("  @SP\n");
-        sb.append("  A=M-1\n");
-        sb.append("  D=M\n");
-        sb.append("  A=A-1\n");
-        sb.append("  M=M&D\n");
-        sb.append("  @SP\n");
-        sb.append("  M=M-1\n");
-        break;
-      case OR:
-        sb.append("  @SP\n");
-        sb.append("  A=M-1\n");
-        sb.append("  D=M\n");
-        sb.append("  A=A-1\n");
-        sb.append("  M=M|D\n");
-        sb.append("  @SP\n");
-        sb.append("  M=M-1\n");
-        break;
-      case EQ:
+
+      case EQ: case GT: case LT:
         this.eqIndex++;
         sb.append("  @SP\n");
         sb.append("  A=M-1\n");
         sb.append("  D=M\n"); // D=y
         sb.append("  A=A-1\n"); //M=x
-        sb.append("  D=D-M\n"); // D = y-x
-        sb.append("  @EQUAL"+this.eqIndex+"\n");
-        sb.append("  D;JEQ\n"); //Jump if D=0, i.e. y=x
+        sb.append("  D=M-D\n"); // D = x-y
+        sb.append("  @EQUALITY"+this.eqIndex+"\n");
+
+        if(operation.equals(EQ)) sb.append("  D;JEQ\n"); //Jump if D=0, i.e. y=x
+        if(operation.equals(GT)) sb.append("  D;JGT\n"); //Jump if D>0, i.e. x>y
+        if(operation.equals(LT)) sb.append("  D;JLT\n"); //Jump if D<0, i.e. x<y
+
         sb.append("  D=0\n"); // false
         sb.append("  @CONTINUE_EQ"+this.eqIndex+"\n");
         sb.append("  0;JMP\n");
-        sb.append("(EQUAL"+this.eqIndex+")\n");
+        sb.append("(EQUALITY"+this.eqIndex+")\n");
         sb.append("  D=-1\n"); // true
         sb.append("(CONTINUE_EQ"+this.eqIndex+")\n");
         sb.append("  @SP\n"); //
@@ -120,61 +102,13 @@ public class VMCodeRunner implements AutoCloseable{
         sb.append("  M=D\n"); // x = D
         sb.append("  @SP\n");
         sb.append("  M=M-1\n");
+        break;
 
-        break;
-      case GT:
-        this.gtIndex++;
+      case NEG: case NOT:
         sb.append("  @SP\n");
         sb.append("  A=M-1\n");
-        sb.append("  D=M\n"); // D=y
-        sb.append("  A=A-1\n"); //M=x
-        sb.append("  D=M-D\n"); // D = x-y
-        sb.append("  @GT"+this.gtIndex+"\n");
-        sb.append("  D;JGT\n"); //Jump if D>0, i.e. x>y
-        sb.append("  D=0\n"); // false
-        sb.append("  @CONTINUE_GT"+this.gtIndex+"\n");
-        sb.append("  0;JMP\n");
-        sb.append("(GT"+this.gtIndex+")\n");
-        sb.append("  D=-1\n"); // true
-        sb.append("(CONTINUE_GT"+this.gtIndex+")\n");
-        sb.append("  @SP\n"); //
-        sb.append("  A=M-1\n"); // M=addr(y)
-        sb.append("  A=A-1\n"); // A=addr(x); M=x
-        sb.append("  M=D\n"); // x = D
-        sb.append("  @SP\n");
-        sb.append("  M=M-1\n");
-        break;
-      case LT:
-        this.ltIndex++;
-        sb.append("  @SP\n");
-        sb.append("  A=M-1\n");
-        sb.append("  D=M\n"); // D=y
-        sb.append("  A=A-1\n"); //M=x
-        sb.append("  D=M-D\n"); // D = x-y
-        sb.append("  @LT"+this.ltIndex+"\n");
-        sb.append("  D;JLT\n"); //Jump if D<0, i.e. x<y
-        sb.append("  D=0\n"); // false
-        sb.append("  @CONTINUE_LT"+this.ltIndex+"\n");
-        sb.append("  0;JMP\n");
-        sb.append("(LT"+this.ltIndex+")\n");
-        sb.append("  D=-1\n"); // true
-        sb.append("(CONTINUE_LT"+this.ltIndex+")\n");
-        sb.append("  @SP\n"); //
-        sb.append("  A=M-1\n"); // M=addr(y)
-        sb.append("  A=A-1\n"); // A=addr(x); M=x
-        sb.append("  M=D\n"); // x = D
-        sb.append("  @SP\n");
-        sb.append("  M=M-1\n");
-        break;
-      case NEG:
-        sb.append("  @SP\n");
-        sb.append("  A=M-1\n");
-        sb.append("  M=-M\n");
-        break;
-      case NOT:
-        sb.append("  @SP\n");
-        sb.append("  A=M-1\n");
-        sb.append("  M=!M\n");
+        if(operation.equals(NEG)) sb.append("  M=-M\n");
+        if(operation.equals(NOT)) sb.append("  M=!M\n");
         break;
     }
 
@@ -230,7 +164,7 @@ public class VMCodeRunner implements AutoCloseable{
     File outputFile = new File(outputFilePath);
     this.close();
     this.writer = new BufferedWriter(new FileWriter(outputFile));
-    this.eqIndex = this.gtIndex = this.ltIndex = 0;
+    this.eqIndex = 0;
 
   }
 
