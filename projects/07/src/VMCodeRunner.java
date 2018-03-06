@@ -170,9 +170,19 @@ public class VMCodeRunner implements AutoCloseable{
 
           this.sb.append("  M=D\n");
           break;
-          
+
         case POINTER:
-          System.out.println("POINTER POP");
+          this.sb.append("  @SP\n");
+          this.sb.append("  M=M-1\n");
+          this.sb.append("  A=M\n");
+          this.sb.append("  D=M\n");
+          this.sb.append("  @");
+          this.sb.append(segmentLabel);
+          this.sb.append("\n");
+          this.sb.append("  M=D\n");
+          break;
+
+        case STATIC:
           this.sb.append("  @SP\n");
           this.sb.append("  M=M-1\n");
           this.sb.append("  A=M\n");
@@ -201,8 +211,8 @@ public class VMCodeRunner implements AutoCloseable{
         case ARGUMENT: case LOCAL: case TEMP: case THAT:case THIS:
           this.sb.append("  @");
           this.sb.append(segmentLabel); // A = SEG
-
-          if(!segment.equals(TEMP)) this.sb.append("\n  A=M\n"); // A = RAM[SEG] (the base address value for that segment)
+          this.sb.append("\n");
+          if(!segment.equals(TEMP)) this.sb.append("  A=M\n"); // A = RAM[SEG] (the base address value for that segment)
           for(int a=0; a<i; a++){
             this.sb.append("  A=A+1\n"); // A = SEG + i
           }
@@ -214,8 +224,8 @@ public class VMCodeRunner implements AutoCloseable{
           this.sb.append("  @SP\n");
           this.sb.append("  M=M+1\n");
           break;
+
         case POINTER:
-          System.out.println("POINTER PUSH");
           this.sb.append("  @");
           this.sb.append(segmentLabel); // A = SEG
           this.sb.append("\n");
@@ -226,9 +236,20 @@ public class VMCodeRunner implements AutoCloseable{
           this.sb.append("  @SP\n");
           this.sb.append("  M=M+1\n");
           break;
-        default:
-          // TODO implement STATIC segment push translation
 
+        case STATIC:
+          this.sb.append("  @");
+          this.sb.append(segmentLabel); // A = SEG
+          this.sb.append("\n");
+          this.sb.append("  D=M\n"); // D = RAM[SEG+i]
+          this.sb.append("  @SP\n");
+          this.sb.append("  A=M\n");
+          this.sb.append("  M=D\n");
+          this.sb.append("  @SP\n");
+          this.sb.append("  M=M+1\n");
+          break;
+
+        default:
 
       }
 
@@ -257,6 +278,8 @@ public class VMCodeRunner implements AutoCloseable{
         return "5";
       case POINTER:
         return (i==0) ? "THIS" : "THAT";
+      case STATIC:
+        return outputFileName+"."+i;
       default:
         return null;
     }
