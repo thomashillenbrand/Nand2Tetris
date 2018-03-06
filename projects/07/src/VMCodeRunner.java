@@ -148,13 +148,13 @@ public class VMCodeRunner implements AutoCloseable{
     String[] splitLine = arg2.split(" ");
     String segment = splitLine[0];
     int i = Integer.parseInt(splitLine[1]);
+    String segmentLabel = this.getSegmentLabel(segment, i);
 
     this.sb.append("// "+parsedLine.get(LINE)+"\n");
 
     if(arg1.equals(VMParser.C_POP)){
       switch (segment) {
-        case LOCAL: case ARGUMENT: case THIS: case THAT:case TEMP:
-          String segmentLabel = this.getSegmentLabel(segment);
+        case ARGUMENT: case LOCAL: case TEMP: case THAT:case THIS:
           this.sb.append("  @SP\n");
           this.sb.append("  M=M-1\n");
           this.sb.append("  A=M\n");
@@ -162,11 +162,29 @@ public class VMCodeRunner implements AutoCloseable{
           this.sb.append("  @");
           this.sb.append(segmentLabel);
           this.sb.append("\n");
+
           if(!segment.equals(TEMP))this.sb.append("  A=M\n");
           for(int a=0; a<i; a++){
             this.sb.append("  A=A+1\n");
           }
+
           this.sb.append("  M=D\n");
+          break;
+          
+        case POINTER:
+          System.out.println("POINTER POP");
+          this.sb.append("  @SP\n");
+          this.sb.append("  M=M-1\n");
+          this.sb.append("  A=M\n");
+          this.sb.append("  D=M\n");
+          this.sb.append("  @");
+          this.sb.append(segmentLabel);
+          this.sb.append("\n");
+          this.sb.append("  M=D\n");
+          break;
+
+        default:
+          // TODO implement STATIC pop translation
       }
 
     }else if (arg1.equals(VMParser.C_PUSH)) {
@@ -180,14 +198,27 @@ public class VMCodeRunner implements AutoCloseable{
           this.sb.append("  @SP\n");
           this.sb.append("  M=M+1\n");
           break;
-        case LOCAL: case ARGUMENT: case THIS: case THAT:case TEMP:
-          String segmentLabel = this.getSegmentLabel(segment);
+        case ARGUMENT: case LOCAL: case TEMP: case THAT:case THIS:
           this.sb.append("  @");
           this.sb.append(segmentLabel); // A = SEG
-          this.sb.append("\n  A=M\n"); // A = RAM[SEG] (the base address value for that segment)
+
+          if(!segment.equals(TEMP)) this.sb.append("\n  A=M\n"); // A = RAM[SEG] (the base address value for that segment)
           for(int a=0; a<i; a++){
             this.sb.append("  A=A+1\n"); // A = SEG + i
           }
+
+          this.sb.append("  D=M\n"); // D = RAM[SEG+i]
+          this.sb.append("  @SP\n");
+          this.sb.append("  A=M\n");
+          this.sb.append("  M=D\n");
+          this.sb.append("  @SP\n");
+          this.sb.append("  M=M+1\n");
+          break;
+        case POINTER:
+          System.out.println("POINTER PUSH");
+          this.sb.append("  @");
+          this.sb.append(segmentLabel); // A = SEG
+          this.sb.append("\n");
           this.sb.append("  D=M\n"); // D = RAM[SEG+i]
           this.sb.append("  @SP\n");
           this.sb.append("  A=M\n");
@@ -196,7 +227,7 @@ public class VMCodeRunner implements AutoCloseable{
           this.sb.append("  M=M+1\n");
           break;
         default:
-          // TODO implement POINTER and STATIC segment push translation
+          // TODO implement STATIC segment push translation
 
 
       }
@@ -212,7 +243,7 @@ public class VMCodeRunner implements AutoCloseable{
    * @param segment
    * @return
    */
-  private String getSegmentLabel(String segment) {
+  private String getSegmentLabel(String segment, int i) {
     switch(segment){
       case LOCAL:
         return "LCL";
@@ -224,6 +255,8 @@ public class VMCodeRunner implements AutoCloseable{
         return "THAT";
       case TEMP:
         return "5";
+      case POINTER:
+        return (i==0) ? "THIS" : "THAT";
       default:
         return null;
     }
