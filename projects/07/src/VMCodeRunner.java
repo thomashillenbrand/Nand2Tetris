@@ -42,8 +42,10 @@ public class VMCodeRunner implements AutoCloseable{
       case VMParser.C_ARITHMETIC:
         this.sb = buildArithmeticCommand(parsedLine);
         break;
-      case VMParser.C_PUSH:
+
+      case VMParser.C_PUSH: case VMParser.C_POP:
         this.sb = buildPushPopCommand(parsedLine);
+
     }
 
     String code = sb.toString();
@@ -68,10 +70,10 @@ public class VMCodeRunner implements AutoCloseable{
         sb.append("  D=M\n");
         sb.append("  A=A-1\n");
 
-        if(operation.equals(ADD)) sb.append("  M=M+D\n");
-        if(operation.equals(SUB)) sb.append("  M=M-D\n");
-        if(operation.equals(AND)) sb.append("  M=M&D\n");
-        if(operation.equals(OR)) sb.append("  M=M|D\n");
+        if(operation.equals(ADD)) sb.append("  M=M+D\n"); // x + y
+        if(operation.equals(SUB)) sb.append("  M=M-D\n"); // x - y
+        if(operation.equals(AND)) sb.append("  M=M&D\n"); // x & y
+        if(operation.equals(OR)) sb.append("  M=M|D\n");  // x | y
 
         sb.append("  @SP\n");
         sb.append("  M=M-1\n");
@@ -96,10 +98,10 @@ public class VMCodeRunner implements AutoCloseable{
         sb.append("(EQUALITY"+this.eqIndex+")\n");
         sb.append("  D=-1\n"); // true
         sb.append("(CONTINUE_EQ"+this.eqIndex+")\n");
-        sb.append("  @SP\n"); //
+        sb.append("  @SP\n");
         sb.append("  A=M-1\n"); // M=addr(y)
         sb.append("  A=A-1\n"); // A=addr(x); M=x
-        sb.append("  M=D\n"); // x = D
+        sb.append("  M=D\n");   // x = D (true=-1;false=0)
         sb.append("  @SP\n");
         sb.append("  M=M-1\n");
         break;
@@ -107,8 +109,8 @@ public class VMCodeRunner implements AutoCloseable{
       case NEG: case NOT:
         sb.append("  @SP\n");
         sb.append("  A=M-1\n");
-        if(operation.equals(NEG)) sb.append("  M=-M\n");
-        if(operation.equals(NOT)) sb.append("  M=!M\n");
+        if(operation.equals(NEG)) sb.append("  M=-M\n"); // x = -x
+        if(operation.equals(NOT)) sb.append("  M=!M\n"); // x = !x
         break;
     }
 
