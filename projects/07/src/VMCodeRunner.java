@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Objects;
+import sun.misc.VM;
 
 public class VMCodeRunner implements AutoCloseable{
 
@@ -11,7 +12,6 @@ public class VMCodeRunner implements AutoCloseable{
   private static final String COMMAND_TYPE = "commandType";
   private static final String ARG1 = "arg1";
   private static final String ARG2 = "arg2";
-  private static final String CONSTANT = "constant";
 
   private static final String ADD = "add";
   private static final String SUB = "sub";
@@ -23,19 +23,35 @@ public class VMCodeRunner implements AutoCloseable{
   private static final String OR  = "or";
   private static final String NOT = "not";
 
+  private static final String CONSTANT = "constant";
+  private static final String LOCAL    = "local";
+  private static final String ARGUMENT = "argument";
+  private static final String THIS     = "this";
+  private static final String THAT     = "that";
+  private static final String STATIC   = "static";
+  private static final String TEMP     = "temp";
+  private static final String POINTER  = "pointer";
 
-  private BufferedWriter writer;
-  private StringBuffer sb;
   private int eqIndex;
+  private String outputFileName;
+  private StringBuffer sb;
+  private BufferedWriter writer;
 
   public VMCodeRunner(File outputFile) throws IOException {
     this.writer = new BufferedWriter(new FileWriter(outputFile));
     this.sb = new StringBuffer();
     this.eqIndex = 0;
-
+    this.outputFileName = outputFile.getName().replace(".asm", "");
 
   }
 
+  /**
+   * Method to  translate and write a parsedLine of vmCode into a segment of assembly code
+   * in the output file.
+   *
+   * @param parsedLine
+   * @throws IOException
+   */
   public void write(HashMap<String, String> parsedLine) throws IOException {
     this.sb.setLength(0);
 
@@ -66,50 +82,50 @@ public class VMCodeRunner implements AutoCloseable{
 
     switch(operation){
       case ADD: case SUB: case AND: case OR:
-        sb.append("  @SP\n");
-        sb.append("  A=M-1\n");
-        sb.append("  D=M\n");
-        sb.append("  A=A-1\n");
+        this.sb.append("  @SP\n");
+        this.sb.append("  A=M-1\n");
+        this.sb.append("  D=M\n");
+        this.sb.append("  A=A-1\n");
 
         if(operation.equals(ADD)) sb.append("  M=M+D\n"); // x + y
         if(operation.equals(SUB)) sb.append("  M=M-D\n"); // x - y
         if(operation.equals(AND)) sb.append("  M=M&D\n"); // x & y
         if(operation.equals(OR)) sb.append("  M=M|D\n");  // x | y
 
-        sb.append("  @SP\n");
-        sb.append("  M=M-1\n");
+        this.sb.append("  @SP\n");
+        this.sb.append("  M=M-1\n");
         break;
 
       case EQ: case GT: case LT:
         this.eqIndex++;
-        sb.append("  @SP\n");
-        sb.append("  A=M-1\n");
-        sb.append("  D=M\n"); // D=y
-        sb.append("  A=A-1\n"); //M=x
-        sb.append("  D=M-D\n"); // D = x-y
-        sb.append("  @EQUALITY"+this.eqIndex+"\n");
+        this.sb.append("  @SP\n");
+        this.sb.append("  A=M-1\n");
+        this.sb.append("  D=M\n"); // D=y
+        this.sb.append("  A=A-1\n"); //M=x
+        this.sb.append("  D=M-D\n"); // D = x-y
+        this.sb.append("  @EQUALITY"+this.eqIndex+"\n");
 
         if(operation.equals(EQ)) sb.append("  D;JEQ\n"); //Jump if D=0, i.e. y=x
         if(operation.equals(GT)) sb.append("  D;JGT\n"); //Jump if D>0, i.e. x>y
         if(operation.equals(LT)) sb.append("  D;JLT\n"); //Jump if D<0, i.e. x<y
 
-        sb.append("  D=0\n"); // false
-        sb.append("  @CONTINUE_EQ"+this.eqIndex+"\n");
-        sb.append("  0;JMP\n");
-        sb.append("(EQUALITY"+this.eqIndex+")\n");
-        sb.append("  D=-1\n"); // true
-        sb.append("(CONTINUE_EQ"+this.eqIndex+")\n");
-        sb.append("  @SP\n");
-        sb.append("  A=M-1\n"); // M=addr(y)
-        sb.append("  A=A-1\n"); // A=addr(x); M=x
-        sb.append("  M=D\n");   // x = D (true=-1;false=0)
-        sb.append("  @SP\n");
-        sb.append("  M=M-1\n");
+        this.sb.append("  D=0\n"); // false
+        this.sb.append("  @CONTINUE_EQ"+this.eqIndex+"\n");
+        this.sb.append("  0;JMP\n");
+        this.sb.append("(EQUALITY"+this.eqIndex+")\n");
+        this.sb.append("  D=-1\n"); // true
+        this.sb.append("(CONTINUE_EQ"+this.eqIndex+")\n");
+        this.sb.append("  @SP\n");
+        this.sb.append("  A=M-1\n"); // M=addr(y)
+        this.sb.append("  A=A-1\n"); // A=addr(x); M=x
+        this.sb.append("  M=D\n");   // x = D (true=-1;false=0)
+        this.sb.append("  @SP\n");
+        this.sb.append("  M=M-1\n");
         break;
 
       case NEG: case NOT:
-        sb.append("  @SP\n");
-        sb.append("  A=M-1\n");
+        this.sb.append("  @SP\n");
+        this.sb.append("  A=M-1\n");
         if(operation.equals(NEG)) sb.append("  M=-M\n"); // x = -x
         if(operation.equals(NOT)) sb.append("  M=!M\n"); // x = !x
         break;
@@ -125,20 +141,35 @@ public class VMCodeRunner implements AutoCloseable{
    * @return
    */
   private StringBuffer buildPushPopCommand(HashMap<String, String> parsedLine) {
+    String arg1 = parsedLine.get(ARG1);
     String arg2 = parsedLine.get(ARG2);
-    Objects.requireNonNull(arg2);
+    Objects.requireNonNull(arg1, arg2);
 
     String[] splitLine = arg2.split(" ");
     String segment = splitLine[0];
-    String i = splitLine[1];
+    int i = Integer.parseInt(splitLine[1]);
 
     this.sb.append("// "+parsedLine.get(LINE)+"\n");
 
-    if(parsedLine.get(COMMAND_TYPE).equals(VMParser.C_POP)){
-      // TODO implement POP commands
+    if(arg1.equals(VMParser.C_POP)){
+      switch (segment) {
+        case LOCAL: case ARGUMENT: case THIS: case THAT:case TEMP:
+          String segmentLabel = this.getSegmentLabel(segment);
+          this.sb.append("  @SP\n");
+          this.sb.append("  M=M-1\n");
+          this.sb.append("  A=M\n");
+          this.sb.append("  D=M\n");
+          this.sb.append("  @");
+          this.sb.append(segmentLabel);
+          this.sb.append("\n");
+          if(!segment.equals(TEMP))this.sb.append("  A=M\n");
+          for(int a=0; a<i; a++){
+            this.sb.append("  A=A+1\n");
+          }
+          this.sb.append("  M=D\n");
+      }
 
-    }else if (parsedLine.get(COMMAND_TYPE).equals(VMParser.C_PUSH)) {
-
+    }else if (arg1.equals(VMParser.C_PUSH)) {
       switch (segment) {
         case CONSTANT:
           this.sb.append("  @" + i + " \n");
@@ -149,14 +180,53 @@ public class VMCodeRunner implements AutoCloseable{
           this.sb.append("  @SP\n");
           this.sb.append("  M=M+1\n");
           break;
+        case LOCAL: case ARGUMENT: case THIS: case THAT:case TEMP:
+          String segmentLabel = this.getSegmentLabel(segment);
+          this.sb.append("  @");
+          this.sb.append(segmentLabel); // A = SEG
+          this.sb.append("\n  A=M\n"); // A = RAM[SEG] (the base address value for that segment)
+          for(int a=0; a<i; a++){
+            this.sb.append("  A=A+1\n"); // A = SEG + i
+          }
+          this.sb.append("  D=M\n"); // D = RAM[SEG+i]
+          this.sb.append("  @SP\n");
+          this.sb.append("  A=M\n");
+          this.sb.append("  M=D\n");
+          this.sb.append("  @SP\n");
+          this.sb.append("  M=M+1\n");
+          break;
         default:
-          // TODO implement non-constant segment push/pop translation
+          // TODO implement POINTER and STATIC segment push translation
+
 
       }
 
-    } else System.out.println("Command type not recognized: "+parsedLine.get(COMMAND_TYPE));
+    } else System.out.println("Command type not recognized: "+arg1);
 
     return this.sb;
+  }
+
+  /**
+   * Method to get hte segment Label for assembly code.
+   *
+   * @param segment
+   * @return
+   */
+  private String getSegmentLabel(String segment) {
+    switch(segment){
+      case LOCAL:
+        return "LCL";
+      case ARGUMENT:
+        return "ARG";
+      case THIS:
+        return "THIS";
+      case THAT:
+        return "THAT";
+      case TEMP:
+        return "5";
+      default:
+        return null;
+    }
   }
 
   /**
@@ -177,6 +247,7 @@ public class VMCodeRunner implements AutoCloseable{
     File outputFile = new File(outputFilePath);
     this.close();
     this.writer = new BufferedWriter(new FileWriter(outputFile));
+    this.outputFileName = outputFile.getName();
     this.eqIndex = 0;
 
   }

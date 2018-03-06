@@ -1,3 +1,4 @@
+import com.sun.xml.internal.ws.util.xml.CDATA;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -84,6 +85,7 @@ public class VMParser {
         String[] splitLine = currentLine.split(" ", 2);
         args.put("arg1", splitLine[0]);
         args.put("arg2", splitLine[1]);
+
     }
 
     return args;
@@ -121,6 +123,7 @@ public class VMParser {
    * @return
    */
   public HashMap<String, String> parseLine() throws IOException {
+
     HashMap<String, String> parsedLine = new HashMap<>();
     String currentLine;
     String commandType;
