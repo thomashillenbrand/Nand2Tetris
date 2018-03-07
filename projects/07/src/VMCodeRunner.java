@@ -192,8 +192,6 @@ public class VMCodeRunner implements AutoCloseable{
           this.sb.append("  M=D\n");
           break;
 
-        default:
-          // TODO implement STATIC pop translation
       }
 
     }else if (arg1.equals(VMParser.C_PUSH)) {
@@ -247,8 +245,6 @@ public class VMCodeRunner implements AutoCloseable{
           this.sb.append("  @SP\n");
           this.sb.append("  M=M+1\n");
           break;
-
-        default:
 
       }
 
