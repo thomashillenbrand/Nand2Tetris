@@ -73,7 +73,7 @@ public class VMCodeRunner implements AutoCloseable{
    * Method to write an arithmetic command in assembly to the output file.
    *
    * @param parsedLine
-   * @return
+   * @return this.sb containting the translated arithmetic command.
    */
   private StringBuffer buildArithmeticCommand(HashMap<String, String> parsedLine){
     String operation = parsedLine.get(LINE);
@@ -144,6 +144,13 @@ public class VMCodeRunner implements AutoCloseable{
     String arg2 = parsedLine.get(ARG2);
     Objects.requireNonNull(arg1, arg2);
 
+    // command format:
+    //  push local 3
+    //    push    = arg1
+    //    local 3 = arg2
+    //    local   = segment
+    //    3       = i
+
     String[] splitLine = arg2.split(" ");
     String segment = splitLine[0];
     int i = Integer.parseInt(splitLine[1]);
@@ -151,110 +158,229 @@ public class VMCodeRunner implements AutoCloseable{
 
     this.sb.append("// "+parsedLine.get(LINE)+"\n");
 
-    if(arg1.equals(VMParser.C_POP)){
-      switch (segment) {
-        case ARGUMENT: case LOCAL: case TEMP: case THAT:case THIS:
-          this.sb.append("  @SP\n");
-          this.sb.append("  M=M-1\n");
-          this.sb.append("  A=M\n");
-          this.sb.append("  D=M\n");
-          this.sb.append("  @");
-          this.sb.append(segmentLabel);
-          this.sb.append("\n");
-
-          if(!segment.equals(TEMP))this.sb.append("  A=M\n");
-          for(int a=0; a<i; a++){
-            this.sb.append("  A=A+1\n");
-          }
-
-          this.sb.append("  M=D\n");
-          break;
-
-        case POINTER:
-          this.sb.append("  @SP\n");
-          this.sb.append("  M=M-1\n");
-          this.sb.append("  A=M\n");
-          this.sb.append("  D=M\n");
-          this.sb.append("  @");
-          this.sb.append(segmentLabel);
-          this.sb.append("\n");
-          this.sb.append("  M=D\n");
-          break;
-
-        case STATIC:
-          this.sb.append("  @SP\n");
-          this.sb.append("  M=M-1\n");
-          this.sb.append("  A=M\n");
-          this.sb.append("  D=M\n");
-          this.sb.append("  @");
-          this.sb.append(segmentLabel);
-          this.sb.append("\n");
-          this.sb.append("  M=D\n");
-          break;
-
-      }
-
-    }else if (arg1.equals(VMParser.C_PUSH)) {
-      switch (segment) {
-        case CONSTANT:
-          this.sb.append("  @" + i + " \n");
-          this.sb.append("  D=A\n");
-          this.sb.append("  @SP\n");
-          this.sb.append("  A=M\n");
-          this.sb.append("  M=D\n");
-          this.sb.append("  @SP\n");
-          this.sb.append("  M=M+1\n");
-          break;
-        case ARGUMENT: case LOCAL: case TEMP: case THAT:case THIS:
-          this.sb.append("  @");
-          this.sb.append(segmentLabel); // A = SEG
-          this.sb.append("\n");
-          if(!segment.equals(TEMP)) this.sb.append("  A=M\n"); // A = RAM[SEG] (the base address value for that segment)
-          for(int a=0; a<i; a++){
-            this.sb.append("  A=A+1\n"); // A = SEG + i
-          }
-
-          this.sb.append("  D=M\n"); // D = RAM[SEG+i]
-          this.sb.append("  @SP\n");
-          this.sb.append("  A=M\n");
-          this.sb.append("  M=D\n");
-          this.sb.append("  @SP\n");
-          this.sb.append("  M=M+1\n");
-          break;
-
-        case POINTER:
-          this.sb.append("  @");
-          this.sb.append(segmentLabel); // A = SEG
-          this.sb.append("\n");
-          this.sb.append("  D=M\n"); // D = RAM[SEG+i]
-          this.sb.append("  @SP\n");
-          this.sb.append("  A=M\n");
-          this.sb.append("  M=D\n");
-          this.sb.append("  @SP\n");
-          this.sb.append("  M=M+1\n");
-          break;
-
-        case STATIC:
-          this.sb.append("  @");
-          this.sb.append(segmentLabel); // A = SEG
-          this.sb.append("\n");
-          this.sb.append("  D=M\n"); // D = RAM[SEG+i]
-          this.sb.append("  @SP\n");
-          this.sb.append("  A=M\n");
-          this.sb.append("  M=D\n");
-          this.sb.append("  @SP\n");
-          this.sb.append("  M=M+1\n");
-          break;
-
-      }
-
-    } else System.out.println("Command type not recognized: "+arg1);
+    switch(segment){
+      case ARGUMENT: case LOCAL: case THAT: case THIS:
+        this.sb = this.buildGeneralPushPop(arg1, segmentLabel, i);
+        break;
+      case CONSTANT:
+        this.sb = this.buildConstantPush(i);
+        break;
+      case POINTER:
+        this.sb = this.buildPointerPushPop(arg1, segmentLabel);
+        break;
+      case STATIC:
+        this.sb = this.buildStaticPushPop(arg1, segmentLabel);
+        break;
+      case TEMP:
+        this.sb = this.buildTempPushPop(arg1, segmentLabel, i);
+        break;
+    }
 
     return this.sb;
   }
 
   /**
-   * Method to get hte segment Label for assembly code.
+   * Method to build the StringBuffer containing the .asm code translated from
+   * the input vmCode command.
+   *
+   * @param i index of Constant segment we are pushing to.
+   * @return this.sb with the translated Constant push command.
+   */
+  private StringBuffer buildConstantPush(int i) {
+
+    this.sb.append("  @" + i + " \n");
+    this.sb.append("  D=A\n");
+    this.sb.append("  @SP\n");
+    this.sb.append("  A=M\n");
+    this.sb.append("  M=D\n");
+    this.sb.append("  @SP\n");
+    this.sb.append("  M=M+1\n");
+
+    return this.sb;
+  }
+
+  /**
+   * Method to build a StringBuffer containing the translated vmCode for push/pop
+   * commands relevant to the Argument, Local, This, or That segments.
+   *
+   * @param arg1
+   * @param segmentLabel
+   * @param i
+   * @return this.sb containing the translated push/pop command.
+   */
+  private StringBuffer buildGeneralPushPop(String arg1, String segmentLabel, int i) {
+
+    switch(arg1){
+      case VMParser.C_PUSH:
+        this.sb.append("  @");
+        this.sb.append(segmentLabel); // A = SEG
+        this.sb.append("\n  A=M\n"); // A = RAM[SEG] (the base address value for that segment)
+        for(int a=0; a<i; a++){
+          this.sb.append("  A=A+1\n"); // A = SEG + i
+        }
+        this.sb.append("  D=M\n"); // D = RAM[SEG+i]
+        this.sb.append("  @SP\n");
+        this.sb.append("  A=M\n");
+        this.sb.append("  M=D\n");
+        this.sb.append("  @SP\n");
+        this.sb.append("  M=M+1\n");
+        break;
+
+      case VMParser.C_POP:
+        this.sb.append("  @SP\n");
+        this.sb.append("  M=M-1\n");
+        this.sb.append("  A=M\n");
+        this.sb.append("  D=M\n");
+        this.sb.append("  @");
+        this.sb.append(segmentLabel);
+        this.sb.append("\n  A=M\n");
+        for(int a=0; a<i; a++){
+          this.sb.append("  A=A+1\n");
+        }
+        this.sb.append("  M=D\n");
+        break;
+
+      default:
+        System.out.println("Arg1 not recognized: "+arg1);
+    }
+
+    return this.sb;
+  }
+
+
+  /**
+   * Method to build a StringBuffer containing the translated vmCode for push/pop
+   * commands relevant to the Pointer segment.
+   *
+   * @param arg1
+   * @param segmentLabel
+   * @return this.sb containing translated push/pop command.
+   */
+  private StringBuffer buildPointerPushPop(String arg1, String segmentLabel) {
+
+    switch(arg1) {
+      case VMParser.C_PUSH:
+        this.sb.append("  @");
+        this.sb.append(segmentLabel); // A = SEG
+        this.sb.append("\n");
+        this.sb.append("  D=M\n"); // D = RAM[SEG+i]
+        this.sb.append("  @SP\n");
+        this.sb.append("  A=M\n");
+        this.sb.append("  M=D\n");
+        this.sb.append("  @SP\n");
+        this.sb.append("  M=M+1\n");
+        break;
+
+      case VMParser.C_POP:
+        this.sb.append("  @SP\n");
+        this.sb.append("  M=M-1\n");
+        this.sb.append("  A=M\n");
+        this.sb.append("  D=M\n");
+        this.sb.append("  @");
+        this.sb.append(segmentLabel);
+        this.sb.append("\n");
+        this.sb.append("  M=D\n");
+        break;
+
+      default:
+        System.out.println("Arg1 not recognized: " + arg1);
+    }
+
+    return this.sb;
+  }
+
+  /**
+   * Method to build a StringBuffer containing the translated vmCode for push/pop
+   * commands relevant to the Static segment.
+   *
+   * @param arg1
+   * @param segmentLabel
+   * @return this.sb containing translated push/pop command.
+   */
+  private StringBuffer buildStaticPushPop(String arg1, String segmentLabel) {
+
+    switch(arg1) {
+      case VMParser.C_PUSH:
+        this.sb.append("  @");
+        this.sb.append(segmentLabel); // A = SEG
+        this.sb.append("\n");
+        this.sb.append("  D=M\n"); // D = RAM[SEG+i]
+        this.sb.append("  @SP\n");
+        this.sb.append("  A=M\n");
+        this.sb.append("  M=D\n");
+        this.sb.append("  @SP\n");
+        this.sb.append("  M=M+1\n");
+        break;
+
+      case VMParser.C_POP:
+        this.sb.append("  @SP\n");
+        this.sb.append("  M=M-1\n");
+        this.sb.append("  A=M\n");
+        this.sb.append("  D=M\n");
+        this.sb.append("  @");
+        this.sb.append(segmentLabel);
+        this.sb.append("\n");
+        this.sb.append("  M=D\n");
+        break;
+
+      default:
+        System.out.println("Arg1 not recognized: " + arg1);
+    }
+
+    return this.sb;
+  }
+
+  /**
+   * Method to build a StringBuffer containing the translated vmCode for push/pop
+   * commands relevant to the Temp segment.
+   *
+   * @param arg1
+   * @param segmentLabel
+   * @param i
+   * @return this.sb containing translated push/pop command.
+   */
+  private StringBuffer buildTempPushPop(String arg1, String segmentLabel, int i) {
+
+    switch(arg1) {
+      case VMParser.C_PUSH:
+        this.sb.append("  @");
+        this.sb.append(segmentLabel); // A = SEG
+        this.sb.append("\n");
+        for(int a=0; a<i; a++){
+          this.sb.append("  A=A+1\n"); // A = SEG + i
+        }
+
+        this.sb.append("  D=M\n"); // D = RAM[SEG+i]
+        this.sb.append("  @SP\n");
+        this.sb.append("  A=M\n");
+        this.sb.append("  M=D\n");
+        this.sb.append("  @SP\n");
+        this.sb.append("  M=M+1\n");
+        break;
+
+      case VMParser.C_POP:
+        this.sb.append("  @SP\n");
+        this.sb.append("  M=M-1\n");
+        this.sb.append("  A=M\n");
+        this.sb.append("  D=M\n");
+        this.sb.append("  @");
+        this.sb.append(segmentLabel);
+        this.sb.append("\n");
+        for(int a=0; a<i; a++){
+          this.sb.append("  A=A+1\n");
+        }
+        this.sb.append("  M=D\n");
+        break;
+
+      default:
+        System.out.println("Arg1 not recognized: " + arg1);
+    }
+
+    return this.sb;
+  }
+
+  /**
+   * Method to get the segment Label for assembly code.
    *
    * @param segment
    * @return
