@@ -4,7 +4,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Objects;
-import sun.misc.VM;
 
 public class VMCodeRunner implements AutoCloseable{
 

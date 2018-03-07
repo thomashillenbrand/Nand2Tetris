@@ -6,10 +6,13 @@ public class VMTranslator {
 
   //public static final String INPUT_FILE_PATH  = "C:/Users/thillenbrand/IntelliJProjects/Nand2Tetris/projects/07/StackArithmetic/StackTest/StackTest.vm";
   //public static final String INPUT_FILE_PATH  = "/home/thomashillenbrand/Projects/Nand2Tetris/projects/07/StackArithmetic/SimpleAdd/SimpleAdd.vm";
-  public static final String INPUT_FILE_PATH    = "C:/Users/thillenbrand/IntelliJProjects/Nand2Tetris/projects/07/MemoryAccess/BasicTest/BasicTest.vm";
-  public static final String OUTPUT_FILE_PATH = INPUT_FILE_PATH.replaceAll(".vm", ".asm");
+  //public static final String INPUT_FILE_PATH    = "/home/thomashillenbrand/Projects/Nand2Tetris/projects/07/MemoryAccess/StaticTest/StaticTest.vm";
+  //public static final String OUTPUT_FILE_PATH = INPUT_FILE_PATH.replaceAll(".vm", ".asm");
 
   public static void main(String[] args) throws IOException {
+
+    String INPUT_FILE_PATH = args[0];
+    String OUTPUT_FILE_PATH = args[0].replace(".vm", ".asm");
 
     System.out.println("Start");
     File input = new File(INPUT_FILE_PATH);
