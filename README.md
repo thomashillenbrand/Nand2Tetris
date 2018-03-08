@@ -19,15 +19,16 @@ At this point the VM should be up and running (sans SSH capabilities). To verify
 ## Relevant Pages
 With the Vagrantized version of the Demos VM, you can execute all Use-Cases from the browser on your host machine.
 
-SailPoint URL: http://localhost:8080/identityiq/login.jsf?prompt=true
+SailPoint URL: http://localhost:8080/identityiq/login.jsf?prompt=true <br>
 OrangHRM URL: http://localhost:8081/orangehrm/symfony/web/index.php/auth/login
 
 ## Credentials
-SailPoint: spadmin/admin
-OrangeHRM: admin/sailpoint
-MYSQL: 	   root/sailpoint
+SailPoint: spadmin/admin <br>
+OrangeHRM: admin/sailpoint <br>
+MYSQL: 	   root/sailpoint <br>
 
 ## Use Cases and Demo Execution
-Refer to the following Demo Script (https://silasg365.sharepoint.com/:w:/s/EnablementTeam/Eb9HBhG1K5ZHk0FtKWITP3kBcmZopQKCAOjagePrMkaaYg?e=eToZSi) and Slide Deck (https://silasg365.sharepoint.com/:p:/s/EnablementTeam/EVFcZt85HoBIqQT4YS0h7vMB8OVDt8SogePJnXprAegy7A?e=Zh9BgM) for more specific information on carrying out the demos for clients.
-
-
+Refer to the following files for more specific information on carrying out the demos for clients.
+<br>
+Demo Script: https://silasg365.sharepoint.com/:w:/s/EnablementTeam/Eb9HBhG1K5ZHk0FtKWITP3kBcmZopQKCAOjagePrMkaaYg?e=eToZSi
+Slide Deck: https://silasg365.sharepoint.com/:p:/s/EnablementTeam/EVFcZt85HoBIqQT4YS0h7vMB8OVDt8SogePJnXprAegy7A?e=Zh9BgM 
