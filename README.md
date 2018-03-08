@@ -4,7 +4,9 @@ This repository contains the necessary files to spin up a pre-configured VM with
 
 ## Setup
 To begin the Vagrant set up, clone the IIQ Demos Git repository to your desired directory on your local machine and run the ​​command 'vagrant up' in your terminal window. Your machine should automatically begin downloading the <b>IIQ7.1p2_Demos.box</b>. 
-This is a ~16GB Windows Server 2012 box that is built from the IIQ7.1p2_Demos VM on Pikes Peak at: <b>G:/SailPoint - IdentityIQ/IdentityIQ/SERI/IIQ7.1p2_Demos_VirtualBox_VM/​​IIQ7.1p2_Demos.zip</b>, the download should take 10-20 minutes. Once the download is finished, Vagrant will begin to boot the VM.​ During the boot sequence you will see the following lines of output in the terminal:
+This is a ~16GB Windows Server 2012 box that is built from the IIQ7.1p2_Demos VM on Pikes Peak at: <b>G:/SailPoint - IdentityIQ/IdentityIQ/SERI/IIQ7.1p2_Demos_VirtualBox_VM/​​IIQ7.1p2_Demos.zip</b>. 
+
+The download should take 10-20 minutes. Once the download is finished, Vagrant will begin to boot the VM.​ During the boot sequence you will see the following lines of output in the terminal:
 
   . . . <br>
   default: SSH username: vagrant <br>
@@ -19,8 +21,8 @@ At this point the VM should be up and running (sans SSH capabilities). To verify
 ## Relevant Pages
 With the Vagrantized version of the Demos VM, you can execute all Use-Cases from the browser on your host machine.
 
-SailPoint URL: <u>http://localhost:8080/identityiq/login.jsf?prompt=true</u> <br>
-OrangHRM URL: <u>http://localhost:8081/orangehrm/symfony/web/index.php/auth/login</u>
+<b>SailPoint URL:</b> http://localhost:8080/identityiq/login.jsf?prompt=true <br>
+<b>OrangHRM URL:</b> http://localhost:8081/orangehrm/symfony/web/index.php/auth/login
 
 ## Credentials
 <b>SailPoint:</b> spadmin/admin <br>
@@ -30,5 +32,5 @@ OrangHRM URL: <u>http://localhost:8081/orangehrm/symfony/web/index.php/auth/logi
 ## Use Cases and Demo Execution
 Refer to the following files for more specific information on carrying out the demos for clients.
 <br>
-Demo Script: <u>https://silasg365.sharepoint.com/:w:/s/EnablementTeam/Eb9HBhG1K5ZHk0FtKWITP3kBcmZopQKCAOjagePrMkaaYg?e=eToZSi</u> <br>
-Slide Deck: <u>https://silasg365.sharepoint.com/:p:/s/EnablementTeam/EVFcZt85HoBIqQT4YS0h7vMB8OVDt8SogePJnXprAegy7A?e=Zh9BgM</u> 
+<b>Demo Script:</b> <u>https://silasg365.sharepoint.com/:w:/s/EnablementTeam/Eb9HBhG1K5ZHk0FtKWITP3kBcmZopQKCAOjagePrMkaaYg?e=eToZSi</u> <br>
+<b>Slide Deck:</b> <u>https://silasg365.sharepoint.com/:p:/s/EnablementTeam/EVFcZt85HoBIqQT4YS0h7vMB8OVDt8SogePJnXprAegy7A?e=Zh9BgM</u> 
