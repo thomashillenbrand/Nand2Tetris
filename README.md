@@ -6,11 +6,11 @@ This repository contains the necessary files to spin up a pre-configured VM with
 To begin the Vagrant set up, clone the IIQ Demos Git repository to your desired directory on your local machine and run the ​​command 'vagrant up' in your terminal window. Your machine should automatically begin downloading the IIQ7.1p2_Demos.box. 
 Since this is a ~16GB box, the download will should take 10-20 minutes. Once the download is finished, Vagrant will begin to boot the VM.​ During the boot sequence you will see the following lines of output in the terminal:
 
-  . . . 
-  default: SSH username: vagrant 
-  default: SSH auth method: private key 
-  default: Warning: Connection reset. Retrying. . . 
-  default: Warning: Connection aborted. Retrying. . . 
+  . . . <br>
+  default: SSH username: vagrant <br>
+  default: SSH auth method: private key <br>
+  default: Warning: Connection reset. Retrying. . . <br>
+  default: Warning: Connection aborted. Retrying. . . <br>
   . . .
 
 where the last two lines are output repeatedly. This is due to Vagrant trying to establish an SSH connection, which is not configured on this Windows box. Eventually the terminal output will indicate a timeout. 
