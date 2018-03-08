@@ -30,5 +30,5 @@ MYSQL: 	   root/sailpoint <br>
 ## Use Cases and Demo Execution
 Refer to the following files for more specific information on carrying out the demos for clients.
 <br>
-Demo Script: https://silasg365.sharepoint.com/:w:/s/EnablementTeam/Eb9HBhG1K5ZHk0FtKWITP3kBcmZopQKCAOjagePrMkaaYg?e=eToZSi
+Demo Script: https://silasg365.sharepoint.com/:w:/s/EnablementTeam/Eb9HBhG1K5ZHk0FtKWITP3kBcmZopQKCAOjagePrMkaaYg?e=eToZSi <br>
 Slide Deck: https://silasg365.sharepoint.com/:p:/s/EnablementTeam/EVFcZt85HoBIqQT4YS0h7vMB8OVDt8SogePJnXprAegy7A?e=Zh9BgM 
