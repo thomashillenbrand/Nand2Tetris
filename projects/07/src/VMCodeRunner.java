@@ -357,35 +357,23 @@ public class VMCodeRunner implements AutoCloseable{
         break;
 
       case VMParser.C_POP:
+
+        this.sb.append("  @"+ i + "\n");
+        this.sb.append("  D=A\n");
+        this.sb.append("  @"+segmentLabel+"\n");
+        this.sb.append("  D=D+A\n");
+        this.sb.append("  @R15\n");
+        this.sb.append("  M=D\n");
         this.sb.append("  @SP\n");
         this.sb.append("  M=M-1\n");
         this.sb.append("  A=M\n");
         this.sb.append("  D=M\n");
-        this.sb.append("  @");
-        this.sb.append(segmentLabel);
-        this.sb.append("\n");
-        for(int a=0; a<i; a++){
-          this.sb.append("  A=A+1\n");
-        }
+        this.sb.append("  @R15\n");
+        this.sb.append("  A=M\n");
         this.sb.append("  M=D\n");
-// TODO remove for loop from TEMP pop
-        //break;
-//
-//        this.sb.append("  @"+ i + "\n");
-//        this.sb.append("  D=A\n");
-//        this.sb.append("  @"+segmentLabel+"\n");
-//        this.sb.append("  D=D+M\n");
-//        this.sb.append("  @R15\n");
-//        this.sb.append("  M=D\n");
-//        this.sb.append("  @SP\n");
-//        this.sb.append("  M=M-1\n");
-//        this.sb.append("  A=M\n");
-//        this.sb.append("  D=M\n");
-//        this.sb.append("  @R15\n");
-//        this.sb.append("  A=M\n");
-//        this.sb.append("  M=D\n");
+        break;
 
-      default:
+        default:
         System.out.println("Arg1 not recognized: " + arg1);
     }
 
