@@ -61,10 +61,9 @@ public class VMCodeRunner implements AutoCloseable{
 
       case VMParser.C_PUSH: case VMParser.C_POP:
         this.sb = buildPushPopCommand(parsedLine);
-
     }
 
-    String code = sb.toString();
+    String code = this.sb.toString();
     this.writer.write(code);
     this.writer.flush();
   }
@@ -212,13 +211,12 @@ public class VMCodeRunner implements AutoCloseable{
 
     switch(arg1){
       case VMParser.C_PUSH:
+        this.sb.append("  @" + i + "\n");
+        this.sb.append("  D=A\n"); // D = i
         this.sb.append("  @");
         this.sb.append(segmentLabel); // A = SEG
-        this.sb.append("\n  A=M\n"); // A = RAM[SEG] (the base address value for that segment)
-        for(int a=0; a<i; a++){
-          this.sb.append("  A=A+1\n"); // A = SEG + i
-        }
-        this.sb.append("  D=M\n"); // D = RAM[SEG+i]
+        this.sb.append("\n  A=M+D\n"); // A = RAM[SEG+D] (the base address value for that segment + D, where D=i)
+        this.sb.append("  D=M\n"); // D = *RAM[RAM[SEG+i]]
         this.sb.append("  @SP\n");
         this.sb.append("  A=M\n");
         this.sb.append("  M=D\n");
@@ -227,16 +225,19 @@ public class VMCodeRunner implements AutoCloseable{
         break;
 
       case VMParser.C_POP:
+
+        this.sb.append("  @"+ i + "\n");
+        this.sb.append("  D=A\n");
+        this.sb.append("  @"+segmentLabel+"\n");
+        this.sb.append("  D=D+M\n");
+        this.sb.append("  @R15\n");
+        this.sb.append("  M=D\n");
         this.sb.append("  @SP\n");
         this.sb.append("  M=M-1\n");
         this.sb.append("  A=M\n");
         this.sb.append("  D=M\n");
-        this.sb.append("  @");
-        this.sb.append(segmentLabel);
-        this.sb.append("\n  A=M\n");
-        for(int a=0; a<i; a++){
-          this.sb.append("  A=A+1\n");
-        }
+        this.sb.append("  @R15\n");
+        this.sb.append("  A=M\n");
         this.sb.append("  M=D\n");
         break;
 
@@ -343,13 +344,10 @@ public class VMCodeRunner implements AutoCloseable{
 
     switch(arg1) {
       case VMParser.C_PUSH:
-        this.sb.append("  @");
-        this.sb.append(segmentLabel); // A = SEG
-        this.sb.append("\n");
-        for(int a=0; a<i; a++){
-          this.sb.append("  A=A+1\n"); // A = SEG + i
-        }
-
+        this.sb.append("  @" + i + "\n");
+        this.sb.append("  D=A\n");
+        this.sb.append("  @"+segmentLabel+"\n");
+        this.sb.append("  A=A+D\n"); // A = SEG + i
         this.sb.append("  D=M\n"); // D = RAM[SEG+i]
         this.sb.append("  @SP\n");
         this.sb.append("  A=M\n");
@@ -370,7 +368,22 @@ public class VMCodeRunner implements AutoCloseable{
           this.sb.append("  A=A+1\n");
         }
         this.sb.append("  M=D\n");
-        break;
+// TODO remove for loop from TEMP pop
+        //break;
+//
+//        this.sb.append("  @"+ i + "\n");
+//        this.sb.append("  D=A\n");
+//        this.sb.append("  @"+segmentLabel+"\n");
+//        this.sb.append("  D=D+M\n");
+//        this.sb.append("  @R15\n");
+//        this.sb.append("  M=D\n");
+//        this.sb.append("  @SP\n");
+//        this.sb.append("  M=M-1\n");
+//        this.sb.append("  A=M\n");
+//        this.sb.append("  D=M\n");
+//        this.sb.append("  @R15\n");
+//        this.sb.append("  A=M\n");
+//        this.sb.append("  M=D\n");
 
       default:
         System.out.println("Arg1 not recognized: " + arg1);
