@@ -1,5 +1,7 @@
 # Files to ignore
 *.dat
 *.out
+*out/*
 *.hack
 *.class
+.idea/*
