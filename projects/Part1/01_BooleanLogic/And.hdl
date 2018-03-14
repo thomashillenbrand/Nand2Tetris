@@ -1,0 +1,34 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/01/And.hdl
+// Updated by Tom Hillenbrand 1/21/2018
+
+/**
+ * And gate: 
+ * out = 1 if (a == 1 and b == 1)
+ *       0 otherwise
+ *
+ * |   a   |   b   |  out  |
+ * |   0   |   0   |   0   |
+ * |   0   |   1   |   0   |
+ * |   1   |   0   |   0   |
+ * |   1   |   1   |   1   |
+ *
+ */
+
+CHIP And {
+    IN a, b;
+    OUT out;
+
+    PARTS:
+	// First NAND gate to determine (a&b).
+	// if false, then this implies that a&b == true
+    Nand (a=a, b=b, out=nandAB);
+	
+	// Since NAND is the opposite of AND, we
+	// NOT the result of the NAND gate to get
+	// proper result of the AND gate.
+    Not (in=nandAB, out=out);
+    
+}
