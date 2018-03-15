@@ -11,12 +11,12 @@ public class VMParser {
   public static final String C_ARITHMETIC = "arithmetic";
   public static final String C_PUSH       = "push";
   public static final String C_POP        = "pop";
-  public static final String C_LABEL      = "c_label";
-  public static final String C_GOTO       = "c_goto";
-  public static final String C_IF         = "c_if";
-  public static final String C_FUNCTION   = "c_function";
-  public static final String C_RETURN     = "c_return";
-  public static final String C_CALL       = "c_call";
+  public static final String C_LABEL      = "label";
+  public static final String C_GOTO       = "goto";
+  public static final String C_IF         = "if";
+  public static final String C_FUNCTION   = "function";
+  public static final String C_RETURN     = "return";
+  public static final String C_CALL       = "call";
 
   public static final String COMMENT      = "comment";
   public static final String EMPTY        = "empty";
@@ -58,11 +58,16 @@ public class VMParser {
   public String commandType(String currentLine){
 
     if(this.isArithmetic(currentLine)) return C_ARITHMETIC;
-    else if(currentLine.startsWith("push")) return C_PUSH;
-    else if(currentLine.startsWith("pop")) return C_POP;
+    else if(currentLine.startsWith(C_CALL)) return C_CALL;
+    else if(currentLine.startsWith(C_FUNCTION)) return C_FUNCTION;
+    else if(currentLine.startsWith((C_GOTO))) return C_GOTO;
+    else if(currentLine.startsWith(C_IF)) return C_IF;
+    else if(currentLine.startsWith(C_LABEL)) return C_LABEL;
+    else if(currentLine.startsWith(C_PUSH)) return C_PUSH;
+    else if(currentLine.startsWith(C_POP)) return C_POP;
+    else if(currentLine.startsWith(C_RETURN)) return C_RETURN;
     else if(currentLine.startsWith("//")) return COMMENT;
     else return EMPTY;
-    // TODO implement reutrns for other command types
 
   }
 
@@ -76,12 +81,22 @@ public class VMParser {
     HashMap<String, String> args = new HashMap<>();
     args.put("line", currentLine);
 
+    // pop local 3
+    // push temp 4
+    // label LOOP_START
+    // if-goto LOOP_START
+    // goto LOOP_START
+    // function SimpleFunction.test 2
+    // return
+    // call
+    // add,sub,lt,gt tec
+
     switch(commandType){
       case C_ARITHMETIC:
         args.put("arg1", currentLine);
         break;
       case C_PUSH: case C_POP:
-        String[] splitLine = currentLine.split(" ", 2);
+        String[] splitLine = currentLine.split(" ", 3);
         args.put("arg1", splitLine[0]);
         args.put("arg2", splitLine[1]);
 
