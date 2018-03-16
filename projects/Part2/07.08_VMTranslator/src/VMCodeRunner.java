@@ -57,35 +57,27 @@ public class VMCodeRunner implements AutoCloseable{
 
     switch(parsedLine.get(COMMAND_TYPE)){
       case VMParser.C_ARITHMETIC:
-        System.out.println("1");
         this.sb = buildArithmeticCommand(parsedLine);
         break;
       case VMParser.C_PUSH: case VMParser.C_POP:
-        System.out.println("2");
         this.sb = buildPushPopCommand(parsedLine);
         break;
       case VMParser.C_LABEL:
-        System.out.println("3");
         this.sb = buildLabelCommand(parsedLine);
         break;
       case VMParser.C_GOTO:
-        System.out.println("4");
         this.sb = buildGoToCommand(parsedLine);
         break;
       case VMParser.C_IF:
-        System.out.println("5");
         this.sb = buildIfCommand(parsedLine);
         break;
       case VMParser.C_CALL:
-        System.out.println("6");
         this.sb = buildCallCommand(parsedLine);
         break;
       case VMParser.C_FUNCTION:
-        System.out.println("7");
         this.sb = buildFunctionCommand(parsedLine);
         break;
       case VMParser.C_RETURN:
-        System.out.println("8");
         this.sb = buildReturnCommand(parsedLine);
         break;
       default:
