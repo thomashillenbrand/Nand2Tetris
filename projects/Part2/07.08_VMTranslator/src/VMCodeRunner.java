@@ -1,3 +1,4 @@
+import com.sun.org.apache.xpath.internal.SourceTree;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -56,11 +57,39 @@ public class VMCodeRunner implements AutoCloseable{
 
     switch(parsedLine.get(COMMAND_TYPE)){
       case VMParser.C_ARITHMETIC:
+        System.out.println("1");
         this.sb = buildArithmeticCommand(parsedLine);
         break;
-
       case VMParser.C_PUSH: case VMParser.C_POP:
+        System.out.println("2");
         this.sb = buildPushPopCommand(parsedLine);
+        break;
+      case VMParser.C_LABEL:
+        System.out.println("3");
+        this.sb = buildLabelCommand(parsedLine);
+        break;
+      case VMParser.C_GOTO:
+        System.out.println("4");
+        this.sb = buildGoToCommand(parsedLine);
+        break;
+      case VMParser.C_IF:
+        System.out.println("5");
+        this.sb = buildIfCommand(parsedLine);
+        break;
+      case VMParser.C_CALL:
+        System.out.println("6");
+        this.sb = buildCallCommand(parsedLine);
+        break;
+      case VMParser.C_FUNCTION:
+        System.out.println("7");
+        this.sb = buildFunctionCommand(parsedLine);
+        break;
+      case VMParser.C_RETURN:
+        System.out.println("8");
+        this.sb = buildReturnCommand(parsedLine);
+        break;
+      default:
+        break;
     }
 
     String code = this.sb.toString();
@@ -69,10 +98,10 @@ public class VMCodeRunner implements AutoCloseable{
   }
 
   /**
-   * Method to write an arithmetic command in assembly to the output file.
+   * Method to buuld an arithmetic command in assembly to write to the output file.
    *
    * @param parsedLine
-   * @return this.sb containting the translated arithmetic command.
+   * @return this.sb containing the translated arithmetic command.
    */
   private StringBuffer buildArithmeticCommand(HashMap<String, String> parsedLine){
     String operation = parsedLine.get(LINE);
@@ -133,6 +162,80 @@ public class VMCodeRunner implements AutoCloseable{
   }
 
   /**
+   * Method to build a call command in assembly to write to the output file
+   * @param parsedLine
+   * @return this.sb containing the translated call command.
+   */
+  private StringBuffer buildCallCommand(HashMap<String, String> parsedLine) {
+    String arg1 = parsedLine.get(ARG1);
+    String arg2 = parsedLine.get(ARG2);
+    Objects.requireNonNull(arg1, arg2);
+
+    int i = Integer.parseInt(arg2);
+    String segmentLabel = this.getSegmentLabel(arg1, i);
+    String commandType = parsedLine.get(COMMAND_TYPE);
+    this.sb.append("// "+parsedLine.get(LINE)+"\n");
+    return this.sb;
+  }
+
+  /**
+   * Method to build a Function command in assembly to write to the output file
+   * @param parsedLine
+   * @return this.sb containing the translated function command.
+   */
+  private StringBuffer buildFunctionCommand(HashMap<String, String> parsedLine) {
+    String arg1 = parsedLine.get(ARG1);
+    String arg2 = parsedLine.get(ARG2);
+    Objects.requireNonNull(arg1, arg2);
+
+    int i = Integer.parseInt(arg2);
+    String segmentLabel = this.getSegmentLabel(arg1, i);
+    String commandType = parsedLine.get(COMMAND_TYPE);
+    this.sb.append("// "+parsedLine.get(LINE)+"\n");
+    return this.sb;
+  }
+
+  /**
+   * method to build a go to command in assemly to write to the output file.
+   * @param parsedLine
+   * @return this.sb containing the translated goto command.
+   */
+  private StringBuffer buildGoToCommand(HashMap<String, String> parsedLine){
+    this.sb.append("// "+parsedLine.get(LINE)+"\n");
+    return this.sb;
+  }
+
+  /**
+   * Method to build an if command in assembly to write to the output file.
+   * @param parsedLine
+   * @return this.sb containing the translated if command.
+   */
+  private StringBuffer buildIfCommand(HashMap<String, String> parsedLine) {
+    this.sb.append("// "+parsedLine.get(LINE)+"\n");
+    return this.sb;
+  }
+
+  /**
+   * Method to build a label command in assembly to write to the output file.
+   * @param parsedLine
+   * @return this.sb containing the translated Label command.
+   */
+  private StringBuffer buildLabelCommand(HashMap<String, String> parsedLine) {
+    this.sb.append("// "+parsedLine.get(LINE)+"\n");
+    return this.sb;
+  }
+
+  /**
+   * Method to build a return command in assembly to be written to the output file.
+   * @param parsedLine
+   * @return this.sb containing translated return command.
+   */
+  private StringBuffer buildReturnCommand(HashMap<String, String> parsedLine) {
+    this.sb.append("// "+parsedLine.get(LINE)+"\n");
+    return this.sb;
+  }
+
+  /**
    * Method to write a push/pop command in assembly to the output file.
    *
    * @param parsedLine
@@ -143,35 +246,33 @@ public class VMCodeRunner implements AutoCloseable{
     String arg2 = parsedLine.get(ARG2);
     Objects.requireNonNull(arg1, arg2);
 
+    int i = Integer.parseInt(arg2);
+    String segmentLabel = this.getSegmentLabel(arg1, i);
+    String commandType = parsedLine.get(COMMAND_TYPE);
+
     // command format:
     //  push local 3
-    //    push    = arg1
-    //    local 3 = arg2
-    //    local   = segment
-    //    3       = i
-
-    String[] splitLine = arg2.split(" ");
-    String segment = splitLine[0];
-    int i = Integer.parseInt(splitLine[1]);
-    String segmentLabel = this.getSegmentLabel(segment, i);
+    //    push    = parsedLine.get(COMMAND_TYPE)
+    //    local   = arg1
+    //    3       = arg2 & i
 
     this.sb.append("// "+parsedLine.get(LINE)+"\n");
 
-    switch(segment){
+    switch(arg1){
       case ARGUMENT: case LOCAL: case THAT: case THIS:
-        this.sb = this.buildGeneralPushPop(arg1, segmentLabel, i);
+        this.sb = this.buildGeneralPushPop(commandType, segmentLabel, i);
         break;
       case CONSTANT:
         this.sb = this.buildConstantPush(i);
         break;
       case POINTER:
-        this.sb = this.buildPointerPushPop(arg1, segmentLabel);
+        this.sb = this.buildPointerPushPop(commandType, segmentLabel);
         break;
       case STATIC:
-        this.sb = this.buildStaticPushPop(arg1, segmentLabel);
+        this.sb = this.buildStaticPushPop(commandType, segmentLabel);
         break;
       case TEMP:
-        this.sb = this.buildTempPushPop(arg1, segmentLabel, i);
+        this.sb = this.buildTempPushPop(commandType, segmentLabel, i);
         break;
     }
 
@@ -202,14 +303,14 @@ public class VMCodeRunner implements AutoCloseable{
    * Method to build a StringBuffer containing the translated vmCode for push/pop
    * commands relevant to the Argument, Local, This, or That segments.
    *
-   * @param arg1
+   * @param commandType
    * @param segmentLabel
    * @param i
    * @return this.sb containing the translated push/pop command.
    */
-  private StringBuffer buildGeneralPushPop(String arg1, String segmentLabel, int i) {
+  private StringBuffer buildGeneralPushPop(String commandType, String segmentLabel, int i) {
 
-    switch(arg1){
+    switch(commandType){
       case VMParser.C_PUSH:
         this.sb.append("  @" + i + "\n");
         this.sb.append("  D=A\n"); // D = i
@@ -225,7 +326,6 @@ public class VMCodeRunner implements AutoCloseable{
         break;
 
       case VMParser.C_POP:
-
         this.sb.append("  @"+ i + "\n");
         this.sb.append("  D=A\n");
         this.sb.append("  @"+segmentLabel+"\n");
@@ -242,7 +342,7 @@ public class VMCodeRunner implements AutoCloseable{
         break;
 
       default:
-        System.out.println("Arg1 not recognized: "+arg1);
+        System.out.println("Command Type not recognized: "+commandType);
     }
 
     return this.sb;
@@ -253,13 +353,13 @@ public class VMCodeRunner implements AutoCloseable{
    * Method to build a StringBuffer containing the translated vmCode for push/pop
    * commands relevant to the Pointer segment.
    *
-   * @param arg1
+   * @param commandType
    * @param segmentLabel
    * @return this.sb containing translated push/pop command.
    */
-  private StringBuffer buildPointerPushPop(String arg1, String segmentLabel) {
+  private StringBuffer buildPointerPushPop(String commandType, String segmentLabel) {
 
-    switch(arg1) {
+    switch(commandType) {
       case VMParser.C_PUSH:
         this.sb.append("  @");
         this.sb.append(segmentLabel); // A = SEG
@@ -284,7 +384,7 @@ public class VMCodeRunner implements AutoCloseable{
         break;
 
       default:
-        System.out.println("Arg1 not recognized: " + arg1);
+        System.out.println("Command Type not recognized: " + commandType);
     }
 
     return this.sb;
@@ -294,13 +394,15 @@ public class VMCodeRunner implements AutoCloseable{
    * Method to build a StringBuffer containing the translated vmCode for push/pop
    * commands relevant to the Static segment.
    *
-   * @param arg1
+   * @param commandType
    * @param segmentLabel
    * @return this.sb containing translated push/pop command.
    */
-  private StringBuffer buildStaticPushPop(String arg1, String segmentLabel) {
 
-    switch(arg1) {
+  //to do switch arg1 argument to commandType
+  private StringBuffer buildStaticPushPop(String commandType, String segmentLabel) {
+
+    switch(commandType) {
       case VMParser.C_PUSH:
         this.sb.append("  @");
         this.sb.append(segmentLabel); // A = SEG
@@ -325,7 +427,7 @@ public class VMCodeRunner implements AutoCloseable{
         break;
 
       default:
-        System.out.println("Arg1 not recognized: " + arg1);
+        System.out.println("CommandType not recognized: " + commandType);
     }
 
     return this.sb;
@@ -335,14 +437,14 @@ public class VMCodeRunner implements AutoCloseable{
    * Method to build a StringBuffer containing the translated vmCode for push/pop
    * commands relevant to the Temp segment.
    *
-   * @param arg1
+   * @param commandType
    * @param segmentLabel
    * @param i
    * @return this.sb containing translated push/pop command.
    */
-  private StringBuffer buildTempPushPop(String arg1, String segmentLabel, int i) {
+  private StringBuffer buildTempPushPop(String commandType, String segmentLabel, int i) {
 
-    switch(arg1) {
+    switch(commandType) {
       case VMParser.C_PUSH:
         this.sb.append("  @" + i + "\n");
         this.sb.append("  D=A\n");
@@ -374,7 +476,7 @@ public class VMCodeRunner implements AutoCloseable{
         break;
 
         default:
-        System.out.println("Arg1 not recognized: " + arg1);
+        System.out.println("Command Type not recognized: " + commandType);
     }
 
     return this.sb;
@@ -420,7 +522,7 @@ public class VMCodeRunner implements AutoCloseable{
    * Method to set the output file that the CodeRunner is writing to.
    * @param outputFilePath
    * @throws IOException
-   */
+   *
   public void setFileName(String outputFilePath) throws IOException {
     File outputFile = new File(outputFilePath);
     this.close();
@@ -430,4 +532,5 @@ public class VMCodeRunner implements AutoCloseable{
 
   }
 
+  */
 }

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+
 public class VMParser {
 
   public static final String C_ARITHMETIC = "arithmetic";
@@ -57,17 +58,17 @@ public class VMParser {
    */
   public String commandType(String currentLine){
 
-    if(this.isArithmetic(currentLine)) return C_ARITHMETIC;
-    else if(currentLine.startsWith(C_CALL)) return C_CALL;
+    if(this.isArithmetic(currentLine))          return C_ARITHMETIC;
+    else if(currentLine.startsWith(C_IF))       return C_IF;
+    else if(currentLine.startsWith(C_POP))      return C_POP;
+    else if(currentLine.startsWith(C_PUSH))     return C_PUSH;
+    else if(currentLine.startsWith(C_CALL))     return C_CALL;
+    else if(currentLine.startsWith(C_GOTO))     return C_GOTO;
+    else if(currentLine.startsWith(C_LABEL))    return C_LABEL;
+    else if(currentLine.startsWith(C_RETURN))   return C_RETURN;
     else if(currentLine.startsWith(C_FUNCTION)) return C_FUNCTION;
-    else if(currentLine.startsWith((C_GOTO))) return C_GOTO;
-    else if(currentLine.startsWith(C_IF)) return C_IF;
-    else if(currentLine.startsWith(C_LABEL)) return C_LABEL;
-    else if(currentLine.startsWith(C_PUSH)) return C_PUSH;
-    else if(currentLine.startsWith(C_POP)) return C_POP;
-    else if(currentLine.startsWith(C_RETURN)) return C_RETURN;
-    else if(currentLine.startsWith("//")) return COMMENT;
-    else return EMPTY;
+    else if(currentLine.startsWith("//"))       return COMMENT;
+    else                                        return EMPTY;
 
   }
 
@@ -80,6 +81,7 @@ public class VMParser {
   public HashMap<String, String> getArgs(String currentLine, String commandType){
     HashMap<String, String> args = new HashMap<>();
     args.put("line", currentLine);
+    String[] splitLine = currentLine.split(" ", 3);
 
     // pop local 3
     // push temp 4
@@ -89,16 +91,19 @@ public class VMParser {
     // function SimpleFunction.test 2
     // return
     // call
-    // add,sub,lt,gt tec
+    // add,sub,lt,gt etc
 
     switch(commandType){
       case C_ARITHMETIC:
-        args.put("arg1", currentLine);
-        break;
-      case C_PUSH: case C_POP:
-        String[] splitLine = currentLine.split(" ", 3);
         args.put("arg1", splitLine[0]);
-        args.put("arg2", splitLine[1]);
+        break;
+      case C_LABEL:case C_GOTO:case C_IF:
+        args.put("arg1", splitLine[1]);
+        break;
+      case C_PUSH: case C_POP: case C_FUNCTION: case C_CALL:
+        args.put("arg1", splitLine[1]);
+        args.put("arg2", splitLine[2]);
+        break;
 
     }
 
