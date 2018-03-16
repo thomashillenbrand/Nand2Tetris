@@ -83,16 +83,6 @@ public class VMParser {
     args.put("line", currentLine);
     String[] splitLine = currentLine.split(" ", 3);
 
-    // pop local 3
-    // push temp 4
-    // label LOOP_START
-    // if-goto LOOP_START
-    // goto LOOP_START
-    // function SimpleFunction.test 2
-    // return
-    // call
-    // add,sub,lt,gt etc
-
     switch(commandType){
       case C_ARITHMETIC:
         args.put("arg1", splitLine[0]);
@@ -103,6 +93,8 @@ public class VMParser {
       case C_PUSH: case C_POP: case C_FUNCTION: case C_CALL:
         args.put("arg1", splitLine[1]);
         args.put("arg2", splitLine[2]);
+        break;
+      default:
         break;
 
     }
