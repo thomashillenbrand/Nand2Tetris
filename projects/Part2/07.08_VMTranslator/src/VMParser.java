@@ -27,7 +27,7 @@ public class VMParser {
 
 
   /**
-   * Default constructor.
+   * Constructor when provided an input file.
    *
    * @param inputFile
    */
@@ -38,12 +38,18 @@ public class VMParser {
   }
 
   /**
+   * Default constructor
+   */
+
+  public VMParser(){}
+
+  /**
    * Method to advance the parser by one line in the .vm input file.
    *
    * @throws IOException
    */
-  public void advance() throws IOException{
-    this.currentLine = reader.readLine();
+  private void advance() throws IOException{
+    this.currentLine = this.reader.readLine();
 
   }
 
@@ -56,7 +62,7 @@ public class VMParser {
    * @param currentLine
    * @return commandType of currentLine
    */
-  public String commandType(String currentLine){
+  private String commandType(String currentLine){
 
     if(this.isArithmetic(currentLine))          return C_ARITHMETIC;
     else if(currentLine.startsWith(C_IF))       return C_IF;
@@ -78,7 +84,7 @@ public class VMParser {
    * @param commandType
    * @return map containing the command components
    */
-  public HashMap<String, String> getArgs(String currentLine, String commandType){
+  private HashMap<String, String> getArgs(String currentLine, String commandType){
     HashMap<String, String> args = new HashMap<>();
     args.put("line", currentLine);
     String[] splitLine = currentLine.split(" ", 3);
@@ -106,7 +112,7 @@ public class VMParser {
    * Method to return a boolean indicating whether or not the parser
    * has more lines to read from the .vm input file.
    *
-   * @return
+   * @return boolean indicating whether there are more commands to be translated
    * @throws IOException
    */
   public boolean hasMoreCommands() throws IOException{
@@ -120,7 +126,7 @@ public class VMParser {
    * @param currentLine
    * @return
    */
-  public boolean isArithmetic(String currentLine){
+  private boolean isArithmetic(String currentLine){
     List<String> arithmeticCommands = Arrays.asList("add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not");
     String trimmedLine = this.trimLine(currentLine);
     return arithmeticCommands.contains(trimmedLine);
@@ -162,7 +168,7 @@ public class VMParser {
    * @param line
    * @return trimmed line
    */
-  public String trimLine(String line){
+  private String trimLine(String line){
     String[] lineSplit = line.split("//");
     line = lineSplit[0];
     line = line.trim();
@@ -170,11 +176,31 @@ public class VMParser {
 
   }
 
+
   /**
    * Getters and Setters
    */
 
-  public String getCurrentLine(){
+  /**
+   * method to set the inputFile of the parser. When the inputFile is set,
+   * a new BufferedReader object is created and the currentLine is reset.
+   *
+   * @param inputFile
+   * @throws IOException
+   */
+  public void setInputFile(File inputFile) throws IOException {
+    System.out.println("Setting input file for parser: "+inputFile.getName());
+    if(this.reader != null) this.reader.close();
+    this.reader = new BufferedReader(new FileReader(inputFile));
+    this.currentLine = new String();
+
+  }
+
+  /**
+   * Method to get the currentLine of the parser
+   * @return String currentLine
+   */
+  private String getCurrentLine(){
     return this.currentLine;
   }
 }

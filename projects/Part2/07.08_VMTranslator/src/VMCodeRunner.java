@@ -8,20 +8,30 @@ import java.util.Objects;
 
 public class VMCodeRunner implements AutoCloseable{
 
-  private static final String LINE = "line";
-  private static final String COMMAND_TYPE = "commandType";
-  private static final String ARG1 = "arg1";
-  private static final String ARG2 = "arg2";
 
-  private static final String ADD = "add";
-  private static final String SUB = "sub";
-  private static final String NEG = "neg";
-  private static final String EQ  = "eq";
-  private static final String GT  = "gt";
-  private static final String LT  = "lt";
-  private static final String AND = "and";
-  private static final String OR  = "or";
-  private static final String NOT = "not";
+  /**
+   * Outstanding to do list:
+   *  1. Implement Call translation
+   *  2. Implement Return translation
+   *  3. Implement Funtion translation
+   *  4. Implement Init function
+   *
+   */
+
+  private static final String ARG1         = "arg1";
+  private static final String ARG2         = "arg2";
+  private static final String LINE         = "line";
+  private static final String COMMAND_TYPE = "commandType";
+
+  private static final String ADD          = "add";
+  private static final String SUB          = "sub";
+  private static final String NEG          = "neg";
+  private static final String EQ           = "eq";
+  private static final String GT           = "gt";
+  private static final String LT           = "lt";
+  private static final String AND          = "and";
+  private static final String OR           = "or";
+  private static final String NOT          = "not";
 
   private static final String CONSTANT = "constant";
   private static final String LOCAL    = "local";
@@ -33,7 +43,7 @@ public class VMCodeRunner implements AutoCloseable{
   private static final String POINTER  = "pointer";
 
   private int eqIndex;
-  private String outputFileName;
+  private String currentFileName;
   private StringBuffer sb;
   private BufferedWriter writer;
 
@@ -41,18 +51,37 @@ public class VMCodeRunner implements AutoCloseable{
     this.writer = new BufferedWriter(new FileWriter(outputFile));
     this.sb = new StringBuffer();
     this.eqIndex = 0;
-    this.outputFileName = outputFile.getName().replace(".asm", "");
 
   }
 
   /**
-   * Method to  translate and write a parsedLine of vmCode into a segment of assembly code
-   * in the output file.
+   * Default constructor
+   *
+   */
+  public VMCodeRunner(){}
+
+  /**
+   * Method to write a given string to the output file.
+   *
+   * @param code
+   * @throws IOException
+   */
+  public void write(String code) throws IOException {
+    this.writer.write(code);
+    this.writer.flush();
+
+  }
+
+  /**
+   * Method to translate a given parsedLine Map into asm and
+   * then write it to the output file.
    *
    * @param parsedLine
    * @throws IOException
    */
-  public void write(HashMap<String, String> parsedLine) throws IOException {
+
+  public void writeCommand(HashMap<String, String> parsedLine) throws IOException {
+
     this.sb.setLength(0);
 
     switch(parsedLine.get(COMMAND_TYPE)){
@@ -85,12 +114,11 @@ public class VMCodeRunner implements AutoCloseable{
     }
 
     String code = this.sb.toString();
-    this.writer.write(code);
-    this.writer.flush();
+    this.write(code);
   }
 
   /**
-   * Method to buuld an arithmetic command in assembly to write to the output file.
+   * Method to build an arithmetic command in assembly to write to the output file.
    *
    * @param parsedLine
    * @return this.sb containing the translated arithmetic command.
@@ -167,6 +195,9 @@ public class VMCodeRunner implements AutoCloseable{
     String segmentLabel = this.getSegmentLabel(arg1, i);
     String commandType = parsedLine.get(COMMAND_TYPE);
     this.sb.append("// "+parsedLine.get(LINE)+"\n");
+
+    // TODO implement
+
     return this.sb;
   }
 
@@ -184,6 +215,9 @@ public class VMCodeRunner implements AutoCloseable{
     String segmentLabel = this.getSegmentLabel(arg1, i);
     String commandType = parsedLine.get(COMMAND_TYPE);
     this.sb.append("// "+parsedLine.get(LINE)+"\n");
+
+    // TODO implement
+
     return this.sb;
   }
 
@@ -194,6 +228,11 @@ public class VMCodeRunner implements AutoCloseable{
    */
   private StringBuffer buildGoToCommand(HashMap<String, String> parsedLine){
     this.sb.append("// "+parsedLine.get(LINE)+"\n");
+
+    String jumpLabel = parsedLine.get(ARG1);
+    this.sb.append("  @"+jumpLabel+"\n");
+    this.sb.append("  0;JMP\n");
+
     return this.sb;
   }
 
@@ -204,6 +243,16 @@ public class VMCodeRunner implements AutoCloseable{
    */
   private StringBuffer buildIfCommand(HashMap<String, String> parsedLine) {
     this.sb.append("// "+parsedLine.get(LINE)+"\n");
+
+    String jumpLabel = parsedLine.get(ARG1);
+
+    this.sb.append("  @SP\n");
+    this.sb.append("  M=M-1\n");
+    this.sb.append("  A=M\n");
+    this.sb.append("  D=M\n");
+    this.sb.append("  @"+jumpLabel+"\n");
+    this.sb.append("  D;JNE\n");
+
     return this.sb;
   }
 
@@ -214,6 +263,9 @@ public class VMCodeRunner implements AutoCloseable{
    */
   private StringBuffer buildLabelCommand(HashMap<String, String> parsedLine) {
     this.sb.append("// "+parsedLine.get(LINE)+"\n");
+
+    String label = parsedLine.get(ARG1);
+    this.sb.append("("+label+")\n");
     return this.sb;
   }
 
@@ -224,6 +276,9 @@ public class VMCodeRunner implements AutoCloseable{
    */
   private StringBuffer buildReturnCommand(HashMap<String, String> parsedLine) {
     this.sb.append("// "+parsedLine.get(LINE)+"\n");
+
+    // TODO implement
+
     return this.sb;
   }
 
@@ -495,10 +550,39 @@ public class VMCodeRunner implements AutoCloseable{
       case POINTER:
         return (i==0) ? "THIS" : "THAT";
       case STATIC:
-        return outputFileName+"."+i;
+        String fileName = this.getCurrentFile();
+        return fileName+"."+i;
       default:
         return null;
     }
+  }
+
+  /**
+   * Method to set the name of the current file being translated.
+   *  NOTE: Also writes a comment line to the output file indicating
+   *        the change in file.
+   * @param file
+   * @throws IOException
+   */
+  public void setCurrentFile(File file) throws IOException {
+
+    String fileName = file.getName();
+    this.currentFileName = (fileName.endsWith(".asm")) ? fileName.replace(".asm","") : fileName;
+
+    // write comment line into output file indicating a new file is being translated
+    StringBuffer newFileBuffer = new StringBuffer();
+    newFileBuffer.append("\n// Translating new file: ");
+    newFileBuffer.append(fileName+"\n\n");
+    this.write(newFileBuffer.toString());
+
+  }
+
+  /**
+   * Method to get the name of the current file being translated
+   * @return String representation of the curren;t file being translated.
+   */
+  private String getCurrentFile(){
+    return this.currentFileName;
   }
 
   /**
@@ -510,19 +594,4 @@ public class VMCodeRunner implements AutoCloseable{
     this.writer.close();
   }
 
-  /**
-   * Method to set the output file that the CodeRunner is writing to.
-   * @param outputFilePath
-   * @throws IOException
-   *
-  public void setFileName(String outputFilePath) throws IOException {
-    File outputFile = new File(outputFilePath);
-    this.close();
-    this.writer = new BufferedWriter(new FileWriter(outputFile));
-    this.outputFileName = outputFile.getName();
-    this.eqIndex = 0;
-
-  }
-
-  */
 }
