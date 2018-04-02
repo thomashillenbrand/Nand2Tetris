@@ -33,14 +33,14 @@ public class VMCodeRunner implements AutoCloseable{
   private static final String OR           = "or";
   private static final String NOT          = "not";
 
-  private static final String CONSTANT = "constant";
-  private static final String LOCAL    = "local";
-  private static final String ARGUMENT = "argument";
-  private static final String THIS     = "this";
-  private static final String THAT     = "that";
-  private static final String STATIC   = "static";
-  private static final String TEMP     = "temp";
-  private static final String POINTER  = "pointer";
+  private static final String CONSTANT     = "constant";
+  private static final String LOCAL        = "local";
+  private static final String ARGUMENT     = "argument";
+  private static final String THIS         = "this";
+  private static final String THAT         = "that";
+  private static final String STATIC       = "static";
+  private static final String TEMP         = "temp";
+  private static final String POINTER      = "pointer";
 
   private int eqIndex;
   private String currentFileName;
@@ -113,8 +113,7 @@ public class VMCodeRunner implements AutoCloseable{
         break;
     }
 
-    String code = this.sb.toString();
-    this.write(code);
+    this.write(this.sb.toString());
   }
 
   /**
@@ -137,7 +136,7 @@ public class VMCodeRunner implements AutoCloseable{
         if(operation.equals(ADD)) sb.append("  M=M+D\n"); // x + y
         if(operation.equals(SUB)) sb.append("  M=M-D\n"); // x - y
         if(operation.equals(AND)) sb.append("  M=M&D\n"); // x & y
-        if(operation.equals(OR)) sb.append("  M=M|D\n");  // x | y
+        if(operation.equals(OR))  sb.append("  M=M|D\n");  // x | y
 
         this.sb.append("  @SP\n");
         this.sb.append("  M=M-1\n");
@@ -550,8 +549,7 @@ public class VMCodeRunner implements AutoCloseable{
       case POINTER:
         return (i==0) ? "THIS" : "THAT";
       case STATIC:
-        String fileName = this.getCurrentFile();
-        return fileName+"."+i;
+        return this.getCurrentFile()+"."+i;
       default:
         return null;
     }
