@@ -189,7 +189,6 @@ public class VMParser {
    * @throws IOException
    */
   public void setInputFile(File inputFile) throws IOException {
-    System.out.println("Setting input file for parser: "+inputFile.getName());
     if(this.reader != null) this.reader.close();
     this.reader = new BufferedReader(new FileReader(inputFile));
     this.currentLine = new String();

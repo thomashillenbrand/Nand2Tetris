@@ -13,7 +13,7 @@ public class VMCodeRunner implements AutoCloseable{
    * Outstanding to do list:
    *  1. Implement Call translation
    *  2. Implement Return translation
-   *  3. Implement Funtion translation
+   *  3. Implement Function translation
    *  4. Implement Init function
    *
    */
@@ -567,7 +567,7 @@ public class VMCodeRunner implements AutoCloseable{
   public void setCurrentFile(File file) throws IOException {
 
     String fileName = file.getName();
-    this.currentFileName = (fileName.endsWith(".asm")) ? fileName.replace(".asm","") : fileName;
+    this.currentFileName = (fileName.endsWith(".vm")) ? fileName.replace(".vm","") : fileName;
 
     // write comment line into output file indicating a new file is being translated
     StringBuffer newFileBuffer = new StringBuffer();
