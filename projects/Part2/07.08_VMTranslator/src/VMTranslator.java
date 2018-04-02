@@ -3,7 +3,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
+@SuppressWarnings("JavaDoc")
 public class VMTranslator {
 
   private File inputFile;
@@ -67,7 +69,7 @@ public class VMTranslator {
   private void parseInputStream(File inputFile){
     try {
       if (inputFile.isDirectory()) {
-        for (File childFile : inputFile.listFiles()) {
+        for (File childFile : Objects.requireNonNull(inputFile.listFiles())) {
           this.parseInputStream(childFile);
         }
 
@@ -80,8 +82,8 @@ public class VMTranslator {
       }
 
     } catch(Exception e){
-      System.out.println("Error caught while parsing input stream: ");
-      System.out.println(e);
+      System.out.println("Error caught while parsing input stream: "+e.getMessage());
+      throw e;
     }
 
   }
@@ -94,7 +96,8 @@ public class VMTranslator {
    * @return outputFile File
    */
   private File constructOutputFile(String INPUT_FILE_PATH){
-    String outputFilePath = new String();
+    String outputFilePath;
+
     if(INPUT_FILE_PATH.endsWith(".vm")){
       outputFilePath = INPUT_FILE_PATH.replace(".vm", ".asm");
 

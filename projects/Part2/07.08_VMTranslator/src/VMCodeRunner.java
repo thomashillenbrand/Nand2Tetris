@@ -1,4 +1,3 @@
-import com.sun.org.apache.xpath.internal.SourceTree;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -6,6 +5,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Objects;
 
+@SuppressWarnings({"StringConcatenationInsideStringBufferAppend", "JavaDoc"})
 public class VMCodeRunner implements AutoCloseable{
 
 
@@ -568,10 +568,8 @@ public class VMCodeRunner implements AutoCloseable{
     this.currentFileName = (fileName.endsWith(".vm")) ? fileName.replace(".vm","") : fileName;
 
     // write comment line into output file indicating a new file is being translated
-    StringBuffer newFileBuffer = new StringBuffer();
-    newFileBuffer.append("\n// Translating new file: ");
-    newFileBuffer.append(fileName+"\n\n");
-    this.write(newFileBuffer.toString());
+    String newFileComment = "\n// Translating new file: " + fileName + "\n\n";
+    this.write(newFileComment);
 
   }
 

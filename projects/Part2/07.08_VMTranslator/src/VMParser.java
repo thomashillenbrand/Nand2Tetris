@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 
 
+@SuppressWarnings("JavaDoc")
 public class VMParser {
 
   public static final String C_ARITHMETIC = "arithmetic";
@@ -19,8 +20,8 @@ public class VMParser {
   public static final String C_RETURN     = "return";
   public static final String C_CALL       = "call";
 
-  public static final String COMMENT      = "comment";
-  public static final String EMPTY        = "empty";
+  private static final String COMMENT      = "comment";
+  private static final String EMPTY        = "empty";
 
   private BufferedReader reader;
   private String currentLine;
@@ -33,7 +34,6 @@ public class VMParser {
    */
   public VMParser(File inputFile) throws IOException{
     this.reader = new BufferedReader(new FileReader(inputFile));
-    this.currentLine = new String();
 
   }
 
@@ -177,9 +177,7 @@ public class VMParser {
   }
 
 
-  /**
-   * Getters and Setters
-   */
+  // ===================== Getters and Setters ===================== //
 
   /**
    * method to set the inputFile of the parser. When the inputFile is set,
@@ -191,7 +189,6 @@ public class VMParser {
   public void setInputFile(File inputFile) throws IOException {
     if(this.reader != null) this.reader.close();
     this.reader = new BufferedReader(new FileReader(inputFile));
-    this.currentLine = new String();
 
   }
 
