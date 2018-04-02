@@ -4,16 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-/**
- * TODO
- *  [] Handle multiple file, i.e. directory, inputs.
- */
-
 public class VMTranslator {
 
-  public File inputFile;
-  public List<File> inputFileList;
-  public File outputFile;
+  private File inputFile;
+  private List<File> inputFileList;
+  private File outputFile;
   
   public static void main(String[] args) throws IOException {
 
