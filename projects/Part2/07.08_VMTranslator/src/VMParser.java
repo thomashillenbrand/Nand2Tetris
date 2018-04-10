@@ -23,6 +23,9 @@ public class VMParser {
   private static final String COMMENT      = "comment";
   private static final String EMPTY        = "empty";
 
+  private static final List<String> ARITHMETIC_COMMANDS =
+      Arrays.asList("add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not");
+
   private BufferedReader reader;
   private String currentLine;
 
@@ -127,9 +130,8 @@ public class VMParser {
    * @return
    */
   private boolean isArithmetic(String currentLine){
-    List<String> arithmeticCommands = Arrays.asList("add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not");
     String trimmedLine = this.trimLine(currentLine);
-    return arithmeticCommands.contains(trimmedLine);
+    return ARITHMETIC_COMMANDS.contains(trimmedLine);
 
   }
 

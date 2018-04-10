@@ -298,9 +298,9 @@ public class VMCodeRunner implements AutoCloseable{
 
     // command format:
     //  push local 3
-    //    push    = parsedLine.get(COMMAND_TYPE)
-    //    local   = arg1
-    //    3       = arg2 & i
+    //  --> push    = parsedLine.get(COMMAND_TYPE)
+    //  --> local   = arg1
+    //  --> 3       = arg2 & i
 
     this.sb.append("// "+parsedLine.get(LINE)+"\n");
 
