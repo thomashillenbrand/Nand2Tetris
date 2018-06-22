@@ -45,6 +45,7 @@ public class VMTranslator {
 
         VMParser parser = new VMParser();
         VMCodeRunner codeRunner = new VMCodeRunner(this.outputFile);
+        codeRunner.writeInit();
 
         for (File file : this.inputFileList) {
             parser.setInputFile(file);

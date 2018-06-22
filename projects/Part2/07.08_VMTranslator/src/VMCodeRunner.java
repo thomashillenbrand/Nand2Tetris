@@ -12,10 +12,9 @@ public class VMCodeRunner implements AutoCloseable {
 
     /**
      * Outstanding to do list:
-     * 1. Implement Call translation
+     * 1. Implement Function translation
      * 2. Implement Return translation
-     * 3. Implement Function translation
-     * 4. Implement Init function
+     * 3. Implement Call translation
      */
 
     private static final String ARG1 = "arg1";
@@ -42,13 +41,19 @@ public class VMCodeRunner implements AutoCloseable {
     private static final String TEMP = "temp";
     private static final String POINTER = "pointer";
 
+    private static final String NO_FUNCTION = "";
+
     private int eqIndex;
     private String currentFileName;
     private StringBuffer sb;
     private BufferedWriter writer;
+    private boolean inFunction = false;
+    private String currentFunction;
+
 
     public VMCodeRunner(File outputFile) throws IOException {
         this.writer = new BufferedWriter(new FileWriter(outputFile));
+        this.currentFunction = NO_FUNCTION;
         this.sb = new StringBuffer();
         this.eqIndex = 0;
 
@@ -73,6 +78,32 @@ public class VMCodeRunner implements AutoCloseable {
     }
 
     /**
+     * Method to write the bootstrap code for the VM Translator
+     *
+     * @throws IOException
+     */
+    public void writeInit() throws IOException {
+
+        this.sb.setLength(0);
+        this.sb.append("@256\n");
+        this.sb.append("D=A\n");
+        this.sb.append("@SP\n");
+        this.sb.append("M=D\n");
+
+        this.write(this.sb.toString());
+
+        this.sb.setLength(0);
+        HashMap<String, String> callInit = new HashMap<>();
+        callInit.put("line", "Call Sys.init 0");
+        callInit.put("arg1", "Sys.init");
+        callInit.put("arg2", "0");
+        this.sb = buildCallCommand(callInit);
+
+        this.write(this.sb.toString());
+
+    }
+
+    /**
      * Method to translate a given parsedLine Map into asm and
      * then write it to the output file.
      *
@@ -93,13 +124,13 @@ public class VMCodeRunner implements AutoCloseable {
                 this.sb = buildPushPopCommand(parsedLine);
                 break;
             case VMParser.C_LABEL:
-                this.sb = buildLabelCommand(parsedLine);
+                this.sb = buildLabelCommand(parsedLine, getInFunction(), getCurrentFunctionName());
                 break;
             case VMParser.C_GOTO:
-                this.sb = buildGoToCommand(parsedLine);
+                this.sb = buildGoToCommand(parsedLine, getInFunction(), getCurrentFunctionName());
                 break;
             case VMParser.C_IF:
-                this.sb = buildIfCommand(parsedLine);
+                this.sb = buildIfCommand(parsedLine, getInFunction(), getCurrentFunctionName());
                 break;
             case VMParser.C_CALL:
                 this.sb = buildCallCommand(parsedLine);
@@ -215,13 +246,16 @@ public class VMCodeRunner implements AutoCloseable {
      * @return this.sb containing the translated function command.
      */
     private StringBuffer buildFunctionCommand(HashMap<String, String> parsedLine) {
-        String arg1 = parsedLine.get(ARG1);
-        String arg2 = parsedLine.get(ARG2);
-        Objects.requireNonNull(arg1, arg2);
 
-        int i = Integer.parseInt(arg2);
-        String segmentLabel = this.getSegmentLabel(arg1, i);
-        String commandType = parsedLine.get(COMMAND_TYPE);
+        String functionName = parsedLine.get(ARG1);
+        String numArgs = parsedLine.get(ARG2);
+        Objects.requireNonNull(functionName, numArgs);
+
+        int i = Integer.parseInt(numArgs);
+
+        setInFunction(true);
+        if(!getCurrentFunctionName().equals(functionName)) setCurrentFunctionName(functionName);
+
         this.sb.append("// " + parsedLine.get(LINE) + "\n");
 
         // TODO implement
@@ -235,10 +269,11 @@ public class VMCodeRunner implements AutoCloseable {
      * @param parsedLine
      * @return this.sb containing the translated goto command.
      */
-    private StringBuffer buildGoToCommand(HashMap<String, String> parsedLine) {
+    private StringBuffer buildGoToCommand(HashMap<String, String> parsedLine, boolean inFunction, String currentFunction) {
         this.sb.append("// " + parsedLine.get(LINE) + "\n");
 
-        String jumpLabel = parsedLine.get(ARG1);
+        // String jumpLabel = parsedLine.get(ARG1);
+        String jumpLabel = (inFunction) ? (currentFunction+"$"+parsedLine.get(ARG1)) : parsedLine.get(ARG1);
         this.sb.append("  @" + jumpLabel + "\n");
         this.sb.append("  0;JMP\n");
 
@@ -251,10 +286,11 @@ public class VMCodeRunner implements AutoCloseable {
      * @param parsedLine
      * @return this.sb containing the translated if command.
      */
-    private StringBuffer buildIfCommand(HashMap<String, String> parsedLine) {
+    private StringBuffer buildIfCommand(HashMap<String, String> parsedLine, boolean inFunction, String currentFunction) {
         this.sb.append("// " + parsedLine.get(LINE) + "\n");
 
-        String jumpLabel = parsedLine.get(ARG1);
+        // String jumpLabel = parsedLine.get(ARG1);
+        String jumpLabel = (inFunction) ? (currentFunction+"$"+parsedLine.get(ARG1)) : parsedLine.get(ARG1);
 
         this.sb.append("  @SP\n");
         this.sb.append("  M=M-1\n");
@@ -272,10 +308,10 @@ public class VMCodeRunner implements AutoCloseable {
      * @param parsedLine
      * @return this.sb containing the translated Label command.
      */
-    private StringBuffer buildLabelCommand(HashMap<String, String> parsedLine) {
+    private StringBuffer buildLabelCommand(HashMap<String, String> parsedLine, boolean inFunction, String functionName) {
         this.sb.append("// " + parsedLine.get(LINE) + "\n");
 
-        String label = parsedLine.get(ARG1);
+        String label = (inFunction) ? (functionName+"$"+parsedLine.get(ARG1)) : parsedLine.get(ARG1);
         this.sb.append("(" + label + ")\n");
         return this.sb;
     }
@@ -287,6 +323,7 @@ public class VMCodeRunner implements AutoCloseable {
      * @return this.sb containing translated return command.
      */
     private StringBuffer buildReturnCommand(HashMap<String, String> parsedLine) {
+
         this.sb.append("// " + parsedLine.get(LINE) + "\n");
 
         // TODO implement
@@ -572,6 +609,44 @@ public class VMCodeRunner implements AutoCloseable {
     }
 
     /**
+     * Method to return the inFunction value.
+     *
+     * @return
+     */
+    private boolean getInFunction(){
+        return this.inFunction;
+    }
+
+    /**
+     * Method to set the flag indicating whether we are translating a function
+     *
+     * @param inFunction
+     */
+    private void setInFunction(boolean inFunction){
+        this.inFunction = inFunction;
+    }
+
+    /**
+     * Method to retrieve the name of the function we are currently translating.
+     * @return
+     */
+    private String getCurrentFunctionName(){
+        return this.currentFunction;
+    }
+
+    /**
+     * Method to set the name of hte function we are currently translating.
+     * @param functionName
+     */
+    private void setCurrentFunctionName(String functionName){
+        this.currentFunction = functionName;
+    }
+
+    private void resetCurrentFunctionName(){
+        this.currentFunction = NO_FUNCTION;
+    }
+
+    /**
      * Method to get the name of the current file being translated
      *
      * @return String representation of the curren;t file being translated.
@@ -596,6 +671,8 @@ public class VMCodeRunner implements AutoCloseable {
         // write comment line into output file indicating a new file is being translated
         String newFileComment = "\n// Translating new file: " + fileName + "\n\n";
         this.write(newFileComment);
+        setInFunction(false);
+        resetCurrentFunctionName();
 
     }
 
