@@ -44,6 +44,7 @@ public class VMTranslator {
     public void translate() throws IOException {
 
         VMParser parser = new VMParser();
+        HashMap<String, String> parsedLine;
         VMCodeRunner codeRunner = new VMCodeRunner(this.outputFile);
         codeRunner.writeInit();
 
@@ -52,7 +53,7 @@ public class VMTranslator {
             codeRunner.setCurrentFile(file);
 
             while (parser.hasMoreCommands()) {
-                HashMap<String, String> parsedLine = parser.parseLine();
+                parsedLine = parser.parseLine();
                 codeRunner.writeCommand(parsedLine);
 
             } // end while loop

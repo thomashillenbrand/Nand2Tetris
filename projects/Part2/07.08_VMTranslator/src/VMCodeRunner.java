@@ -258,7 +258,14 @@ public class VMCodeRunner implements AutoCloseable {
 
         this.sb.append("// " + parsedLine.get(LINE) + "\n");
 
-        // TODO implement
+        this.sb.append("("+functionName+")\n");
+
+        for(int j=0; j<i; j++){
+            StringBuffer tempBuffer = buildConstantPush(0);
+            this.sb.append(tempBuffer);
+
+        }
+
 
         return this.sb;
     }
