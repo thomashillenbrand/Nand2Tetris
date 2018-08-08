@@ -12,9 +12,8 @@ public class VMCodeRunner implements AutoCloseable {
 
     /**
      * Outstanding to do list:
-     * 1. Implement Function translation
-     * 2. Implement Return translation
-     * 3. Implement Call translation
+     * 1. Implement Return translation
+     * 2. Implement Call translation
      */
 
     private static final String ARG1 = "arg1";
@@ -44,6 +43,7 @@ public class VMCodeRunner implements AutoCloseable {
     private static final String NO_FUNCTION = "";
 
     private int eqIndex;
+    private int labelCnt = 0;
     private String currentFileName;
     private StringBuffer sb;
     private BufferedWriter writer;
@@ -227,16 +227,43 @@ public class VMCodeRunner implements AutoCloseable {
      */
     private StringBuffer buildCallCommand(HashMap<String, String> parsedLine) {
         StringBuffer sb = new StringBuffer();
-        String arg1 = parsedLine.get(ARG1);
-        String arg2 = parsedLine.get(ARG2);
-        Objects.requireNonNull(arg1, arg2);
+        String functionName = parsedLine.get(ARG1);
+        String numArgs = parsedLine.get(ARG2);
+        Objects.requireNonNull(functionName, numArgs);
 
-        int i = Integer.parseInt(arg2);
-        String segmentLabel = this.getSegmentLabel(arg1, i);
-        String commandType = parsedLine.get(COMMAND_TYPE);
+        int i = Integer.parseInt(numArgs);
         sb.append("// " + parsedLine.get(LINE) + "\n");
 
         // TODO implement
+        labelCnt++;
+        String returnLabel = "RETURN_LABEL"+labelCnt;
+
+        sb.append("@"+returnLabel+"\n");
+        sb.append("D=A\n");
+        sb.append("@SP\n");
+        sb.append("A=M\n");
+        sb.append("M=D\n");
+        sb.append("@SP\n");
+        sb.append("M=M+1\n");
+        sb.append(pushTemplate1("LCL",0,true));
+        sb.append(pushTemplate1("ARG",0,true));
+        sb.append(pushTemplate1("THIS",0,true));
+        sb.append(pushTemplate1("THAT",0,true));
+        sb.append("@SP\n");
+        sb.append("D=M\n");
+        sb.append("@5\n");
+        sb.append("D=D-A\n");
+        sb.append("@"+i+"\n");
+        sb.append("D=D-A\n");
+        sb.append("@ARG\n");
+        sb.append("M=D\n");
+        sb.append("@SP\n");
+        sb.append("D=M\n");
+        sb.append("@LCL\n");
+        sb.append("M=D\n");
+        sb.append("@"+functionName+"\n");
+        sb.append("0;JMP\n");
+        sb.append("("+returnLabel+")\n");
 
         return sb;
     }
@@ -257,18 +284,17 @@ public class VMCodeRunner implements AutoCloseable {
         int i = Integer.parseInt(numArgs);
 
         setInFunction(true);
-        if(!getCurrentFunctionName().equals(functionName)) setCurrentFunctionName(functionName);
+        if (!getCurrentFunctionName().equals(functionName)) setCurrentFunctionName(functionName);
 
         sb.append("// " + parsedLine.get(LINE) + "\n");
 
-        sb.append("("+functionName+")\n");
+        sb.append("(" + functionName + ")\n");
 
-        for(int j=0; j<i; j++){
+        for (int j = 0; j < i; j++) {
             StringBuffer tempBuffer = buildConstantPush(0);
             sb.append(tempBuffer);
 
         }
-
 
         return sb;
     }
@@ -284,7 +310,7 @@ public class VMCodeRunner implements AutoCloseable {
         sb.append("// " + parsedLine.get(LINE) + "\n");
 
         // String jumpLabel = parsedLine.get(ARG1);
-        String jumpLabel = (inFunction) ? (currentFunction+"$"+parsedLine.get(ARG1)) : parsedLine.get(ARG1);
+        String jumpLabel = (inFunction) ? (currentFunction + "$" + parsedLine.get(ARG1)) : parsedLine.get(ARG1);
         sb.append("  @" + jumpLabel + "\n");
         sb.append("  0;JMP\n");
 
@@ -302,7 +328,7 @@ public class VMCodeRunner implements AutoCloseable {
         sb.append("// " + parsedLine.get(LINE) + "\n");
 
         // String jumpLabel = parsedLine.get(ARG1);
-        String jumpLabel = (inFunction) ? (currentFunction+"$"+parsedLine.get(ARG1)) : parsedLine.get(ARG1);
+        String jumpLabel = (inFunction) ? (currentFunction + "$" + parsedLine.get(ARG1)) : parsedLine.get(ARG1);
 
         sb.append("  @SP\n");
         sb.append("  M=M-1\n");
@@ -324,7 +350,7 @@ public class VMCodeRunner implements AutoCloseable {
         StringBuffer sb = new StringBuffer();
         sb.append("// " + parsedLine.get(LINE) + "\n");
 
-        String label = (inFunction) ? (functionName+"$"+parsedLine.get(ARG1)) : parsedLine.get(ARG1);
+        String label = (inFunction) ? (functionName + "$" + parsedLine.get(ARG1)) : parsedLine.get(ARG1);
         sb.append("(" + label + ")\n");
         return sb;
     }
@@ -339,7 +365,41 @@ public class VMCodeRunner implements AutoCloseable {
         StringBuffer sb = new StringBuffer();
         sb.append("// " + parsedLine.get(LINE) + "\n");
 
-        // TODO implement
+        sb.append("@LCL\n");
+        sb.append("D=M\n");
+        sb.append("@R11\n");
+        sb.append("M=D\n");
+        sb.append("@5\n");
+        sb.append("A=D-A\n");
+        sb.append("D=M\n");
+        sb.append("@R12\n");
+        sb.append("M=D\n");
+
+        sb.append("@ARG\n");
+        sb.append("D=M\n");
+        sb.append("@0\n");
+        sb.append("D=D+A\n");
+        sb.append("@R13\n");
+        sb.append("M=D\n");
+        sb.append("@SP\n");
+        sb.append("AM=M-1\n");
+        sb.append("D=M\n");
+        sb.append("@R13\n");
+        sb.append("A=M\n");
+        sb.append("M=D\n");
+
+
+        sb.append("@ARG\n");
+        sb.append("D=M\n");
+        sb.append("@SP\n");
+        sb.append("M=D+1\n");
+        sb.append(preFrameTemplate("THAT"));
+        sb.append(preFrameTemplate("THIS"));
+        sb.append(preFrameTemplate("ARG"));
+        sb.append(preFrameTemplate("LCL"));
+        sb.append("@R12\n");
+        sb.append("A=M\n");
+        sb.append("0;JMP\n");
 
         return sb;
     }
@@ -627,11 +687,53 @@ public class VMCodeRunner implements AutoCloseable {
     }
 
     /**
+     * Method to build the asm code to save the value
+     * of pre fram to given position.
+     *
+     * @param position
+     * @return
+     */
+    public String preFrameTemplate(String position) {
+
+        return "@R11\n" +
+                "D=M-1\n" +
+                "AM=D\n" +
+                "D=M\n" +
+                "@" + position + "\n" +
+                "M=D\n";
+
+    }
+
+    /**
+     * Template for push local,this,that,argument,temp,pointer,static
+     * @param segment
+     * @param index
+     * @param isDirect Is this command a direct addressing?
+     * @return
+     */
+    private String pushTemplate1(String segment, int index, boolean isDirect){
+
+        //When it is a pointer, just read the data stored in THIS or THAT
+        String noPointerCode = (isDirect)? "" : "@" + index + "\n" + "A=D+A\nD=M\n";
+
+        return "@" + segment + "\n" +
+                "D=M\n"+
+                noPointerCode +
+                "@SP\n" +
+                "A=M\n" +
+                "M=D\n" +
+                "@SP\n" +
+                "M=M+1\n";
+
+    }
+
+
+    /**
      * Method to return the inFunction value.
      *
      * @return
      */
-    private boolean getInFunction(){
+    private boolean getInFunction() {
         return this.inFunction;
     }
 
@@ -640,27 +742,29 @@ public class VMCodeRunner implements AutoCloseable {
      *
      * @param inFunction
      */
-    private void setInFunction(boolean inFunction){
+    private void setInFunction(boolean inFunction) {
         this.inFunction = inFunction;
     }
 
     /**
      * Method to retrieve the name of the function we are currently translating.
+     *
      * @return
      */
-    private String getCurrentFunctionName(){
+    private String getCurrentFunctionName() {
         return this.currentFunction;
     }
 
     /**
      * Method to set the name of hte function we are currently translating.
+     *
      * @param functionName
      */
-    private void setCurrentFunctionName(String functionName){
+    private void setCurrentFunctionName(String functionName) {
         this.currentFunction = functionName;
     }
 
-    private void resetCurrentFunctionName(){
+    private void resetCurrentFunctionName() {
         this.currentFunction = NO_FUNCTION;
     }
 
