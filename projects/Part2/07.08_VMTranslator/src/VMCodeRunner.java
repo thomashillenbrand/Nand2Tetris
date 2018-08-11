@@ -237,10 +237,10 @@ public class VMCodeRunner implements AutoCloseable {
         sb.append("M=D\n");
         sb.append("@SP\n");
         sb.append("M=M+1\n");
-        sb.append(pushTemplate1("LCL", 0, true));
-        sb.append(pushTemplate1("ARG", 0, true));
-        sb.append(pushTemplate1("THIS", 0, true));
-        sb.append(pushTemplate1("THAT", 0, true));
+        sb.append(returnSegmentPushTemplate("LCL"));
+        sb.append(returnSegmentPushTemplate("ARG"));
+        sb.append(returnSegmentPushTemplate("THIS"));
+        sb.append(returnSegmentPushTemplate("THAT"));
         sb.append("@SP\n");
         sb.append("D=M\n");
         sb.append("@5\n");
@@ -680,7 +680,7 @@ public class VMCodeRunner implements AutoCloseable {
 
     /**
      * Method to build the asm code to save the value
-     * of pre fram to given position.
+     * of pre frame to given position.
      *
      * @param position
      * @return
@@ -700,18 +700,12 @@ public class VMCodeRunner implements AutoCloseable {
      * Template for push local,this,that,argument,temp,pointer,static
      *
      * @param segment
-     * @param index
-     * @param isDirect Is this command a direct addressing?
      * @return
      */
-    private String pushTemplate1(String segment, int index, boolean isDirect) {
-
-        //When it is a pointer, just read the data stored in THIS or THAT
-        String noPointerCode = (isDirect) ? "" : "@" + index + "\n" + "A=D+A\nD=M\n";
+    private String returnSegmentPushTemplate(String segment) {
 
         return "@" + segment + "\n" +
                 "D=M\n" +
-                noPointerCode +
                 "@SP\n" +
                 "A=M\n" +
                 "M=D\n" +
