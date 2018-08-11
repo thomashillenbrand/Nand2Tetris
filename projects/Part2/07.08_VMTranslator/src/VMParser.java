@@ -181,7 +181,7 @@ public class VMParser {
      */
     private String trimLine(String line) {
         String[] lineSplit = line.split("//");
-        if(lineSplit.length > 0) {
+        if (lineSplit.length > 0) {
             line = lineSplit[0];
             line = line.trim();
         }

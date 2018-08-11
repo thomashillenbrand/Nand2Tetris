@@ -9,13 +9,6 @@ import java.util.Objects;
 @SuppressWarnings({"StringConcatenationInsideStringBufferAppend", "JavaDoc"})
 public class VMCodeRunner implements AutoCloseable {
 
-
-    /**
-     * Outstanding to do list:
-     * 1. Implement Return translation
-     * 2. Implement Call translation
-     */
-
     private static final String ARG1 = "arg1";
     private static final String ARG2 = "arg2";
     private static final String LINE = "line";
@@ -234,26 +227,25 @@ public class VMCodeRunner implements AutoCloseable {
         int i = Integer.parseInt(numArgs);
         sb.append("// " + parsedLine.get(LINE) + "\n");
 
-        // TODO implement
         labelCnt++;
-        String returnLabel = "RETURN_LABEL"+labelCnt;
+        String returnLabel = "RETURN_LABEL" + labelCnt;
 
-        sb.append("@"+returnLabel+"\n");
+        sb.append("@" + returnLabel + "\n");
         sb.append("D=A\n");
         sb.append("@SP\n");
         sb.append("A=M\n");
         sb.append("M=D\n");
         sb.append("@SP\n");
         sb.append("M=M+1\n");
-        sb.append(pushTemplate1("LCL",0,true));
-        sb.append(pushTemplate1("ARG",0,true));
-        sb.append(pushTemplate1("THIS",0,true));
-        sb.append(pushTemplate1("THAT",0,true));
+        sb.append(pushTemplate1("LCL", 0, true));
+        sb.append(pushTemplate1("ARG", 0, true));
+        sb.append(pushTemplate1("THIS", 0, true));
+        sb.append(pushTemplate1("THAT", 0, true));
         sb.append("@SP\n");
         sb.append("D=M\n");
         sb.append("@5\n");
         sb.append("D=D-A\n");
-        sb.append("@"+i+"\n");
+        sb.append("@" + i + "\n");
         sb.append("D=D-A\n");
         sb.append("@ARG\n");
         sb.append("M=D\n");
@@ -261,9 +253,9 @@ public class VMCodeRunner implements AutoCloseable {
         sb.append("D=M\n");
         sb.append("@LCL\n");
         sb.append("M=D\n");
-        sb.append("@"+functionName+"\n");
+        sb.append("@" + functionName + "\n");
         sb.append("0;JMP\n");
-        sb.append("("+returnLabel+")\n");
+        sb.append("(" + returnLabel + ")\n");
 
         return sb;
     }
@@ -706,18 +698,19 @@ public class VMCodeRunner implements AutoCloseable {
 
     /**
      * Template for push local,this,that,argument,temp,pointer,static
+     *
      * @param segment
      * @param index
      * @param isDirect Is this command a direct addressing?
      * @return
      */
-    private String pushTemplate1(String segment, int index, boolean isDirect){
+    private String pushTemplate1(String segment, int index, boolean isDirect) {
 
         //When it is a pointer, just read the data stored in THIS or THAT
-        String noPointerCode = (isDirect)? "" : "@" + index + "\n" + "A=D+A\nD=M\n";
+        String noPointerCode = (isDirect) ? "" : "@" + index + "\n" + "A=D+A\nD=M\n";
 
         return "@" + segment + "\n" +
-                "D=M\n"+
+                "D=M\n" +
                 noPointerCode +
                 "@SP\n" +
                 "A=M\n" +
