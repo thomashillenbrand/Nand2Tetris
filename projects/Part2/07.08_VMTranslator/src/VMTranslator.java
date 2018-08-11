@@ -11,6 +11,7 @@ public class VMTranslator {
     private File inputFile;
     private List<File> inputFileList;
     private File outputFile;
+    private static boolean bootstrap = false;
 
     /**
      * Default constructor
@@ -26,11 +27,19 @@ public class VMTranslator {
     public static void main(String[] args) throws IOException {
 
         String INPUT_FILE_PATH = args[0];
+        if(INPUT_FILE_PATH.contains("BasicLoop")) bootstrap = false;
+        if(INPUT_FILE_PATH.contains("FibonacciSeries")) bootstrap = false;
+        if(INPUT_FILE_PATH.contains("SimpleFunction")) bootstrap = false;
+        if(INPUT_FILE_PATH.contains("NestedCall")) bootstrap = true;
+        if(INPUT_FILE_PATH.contains("FibonacciElement")) bootstrap = true;
+        if(INPUT_FILE_PATH.contains("StaticsTest")) bootstrap = true;
+
 
         System.out.println("Start: \n" + INPUT_FILE_PATH);
+        System.out.println("Bootstrap: "+bootstrap);
 
         VMTranslator translator = new VMTranslator(INPUT_FILE_PATH);
-        translator.translate();
+        translator.translate(bootstrap);
 
         System.out.println("Complete");
 
@@ -41,12 +50,12 @@ public class VMTranslator {
      *
      * @throws IOException
      */
-    public void translate() throws IOException {
+    public void translate(boolean bootstrap) throws IOException {
 
         VMParser parser = new VMParser();
         HashMap<String, String> parsedLine;
         VMCodeRunner codeRunner = new VMCodeRunner(this.outputFile);
-        codeRunner.writeInit();
+        if(bootstrap) codeRunner.writeInit();
 
         for (File file : this.inputFileList) {
             parser.setInputFile(file);
@@ -75,7 +84,7 @@ public class VMTranslator {
                     this.parseInputStream(childFile);
                 }
 
-            } else {
+            } else { ;
                 String pathName = inputFile.getAbsolutePath();
                 if (pathName.endsWith(".vm")) {
                     this.inputFileList.add(inputFile);
@@ -104,7 +113,13 @@ public class VMTranslator {
             outputFilePath = INPUT_FILE_PATH.replace(".vm", ".asm");
 
         } else {
-            outputFilePath = INPUT_FILE_PATH + ".asm";
+            if(INPUT_FILE_PATH.contains("/")){
+                outputFilePath = INPUT_FILE_PATH+"/"+
+                        INPUT_FILE_PATH.substring(INPUT_FILE_PATH.lastIndexOf("/"), INPUT_FILE_PATH.length())+".asm";
+
+            } else {
+                outputFilePath = INPUT_FILE_PATH + "/" + INPUT_FILE_PATH + ".asm";
+            }
 
         }
 
