@@ -55,6 +55,7 @@ public class VMTranslator {
         VMParser parser = new VMParser();
         HashMap<String, String> parsedLine;
         VMCodeRunner codeRunner = new VMCodeRunner(this.outputFile);
+
         // write bootstrap code if necessary
         if (bootstrap) codeRunner.writeInit();
 
