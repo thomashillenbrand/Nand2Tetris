@@ -161,7 +161,7 @@ public class JackTokenizer {
       String outputFilePath;
       String inputFilePath = inputFile.getAbsolutePath();
       //outputFilePath = inputFilePath.replace(".jack", "T.xml");
-      outputFilePath =
+outputFilePath =
           inputFilePath.substring(0, inputFilePath.lastIndexOf("\\")) + "\\out" + inputFilePath
               .substring(inputFilePath.lastIndexOf("\\")).replace(".jack", "T.xml");
       System.out.println("Output file path: \n" + outputFilePath);
