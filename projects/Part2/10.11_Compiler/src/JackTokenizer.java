@@ -16,6 +16,7 @@ public class JackTokenizer {
   private List<File> inputFileList;
   private BufferedReader reader;
   private BufferedWriter writer;
+  private String currentToken;
 
   public JackTokenizer(String inputFileString) throws Exception {
     this.inputFileList = new ArrayList<>();
@@ -38,9 +39,8 @@ public class JackTokenizer {
    *
    * @return boolean indicating whether there are tokens to process
    */
-  public static boolean hasMoreTokens() {
-    boolean hasMoreTokens = false;
-    return hasMoreTokens;
+  public boolean hasMoreTokens() throws IOException {
+    return this.reader.ready();
   }
 
   /**
@@ -160,9 +160,11 @@ public class JackTokenizer {
     try {
       String outputFilePath;
       String inputFilePath = inputFile.getAbsolutePath();
-      outputFilePath = inputFilePath.replace(".jack", "T.xml");
-
-      //System.out.println("Output file path: \n" + outputFilePath);
+      //outputFilePath = inputFilePath.replace(".jack", "T.xml");
+      outputFilePath =
+          inputFilePath.substring(0, inputFilePath.lastIndexOf("\\")) + "\\out" + inputFilePath
+              .substring(inputFilePath.lastIndexOf("\\")).replace(".jack", "T.xml");
+      System.out.println("Output file path: \n" + outputFilePath);
       return new File(outputFilePath);
 
     } catch (Exception e) {

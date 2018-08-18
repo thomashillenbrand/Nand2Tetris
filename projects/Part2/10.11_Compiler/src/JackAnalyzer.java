@@ -1,6 +1,14 @@
 import com.sun.deploy.util.StringUtils;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.lang.reflect.Array;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Created by thillenbrand on 8/15/2018.
@@ -15,8 +23,29 @@ public class JackAnalyzer {
     if(args.length ==1 ) {
       TOKENIZER_INPUT_FILE_PATH = args[0];
     } else {
-      TOKENIZER_INPUT_FILE_PATH = "C:\\Users\\thillenbrand\\IntelliJProjects\\Nand2Tetris\\projects\\Part2\\10.11_Compiler\\10\\ExpressionLessSquare";
+      TOKENIZER_INPUT_FILE_PATH = "C:\\Users\\thillenbrand\\IntelliJProjects\\Nand2Tetris\\projects\\Part2\\10.11_Compiler\\10\\ExpressionLessSquare\\Main.jack";
     }
+    int lineNum = 0;
+//    Stream<String> stream = Files.lines(Paths.get(TOKENIZER_INPUT_FILE_PATH));
+//    //Stream<String> stream = reader.lines();
+//    //System.out.println(stream.toString());
+//    Iterator<String> it = stream.map(line -> line.trim())
+//                                .filter(line -> !line.startsWith("//"))
+//                                .iterator();
+
+//    while(it.hasNext()) {
+//      lineNum ++;
+//      System.out.println(lineNum+" "+it.next());
+//    }
+//    Object[] streamArray = stream.toArray();
+//    System.out.println(streamArray.toString());
+//    while(reader.ready()){
+//      lineNum ++;
+//
+//      System.out.println(lineNum+" "+reader.readLine());
+//    }
+
+
 
     System.out.println("Begin");
     System.out.println("Tokenizer input: "+TOKENIZER_INPUT_FILE_PATH);
